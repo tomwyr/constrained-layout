@@ -1,39 +1,49 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# ConstrainedLayout
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
-
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+A flexible Flutter layout allowing to position widgets by declaring relations between them.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
 ```dart
-const like = 'sample';
+ConstrainedLayout(
+  items: [
+    // Use AttachToParent to position item at the parent's edges.
+    ConstrainedItem(
+      id: 'red',
+      bottom: AttachToParent(),
+      right: AttachToParent(),
+      child: Square(Colors.red),
+    ),
+    // Use AttachTo to position item in relation to the target item.
+    ConstrainedItem(
+      id: 'green',
+      bottom: AttachTo(id: 'red', edge: Edge.top),
+      right: AttachTo(id: 'red', edge: Edge.left),
+      child: Square(Colors.green),
+    ),
+    // Attaching both horizontal or vertical edges will center item between target edges.
+    ConstrainedItem(
+      id: 'blue',
+      top: AttachToParent(),
+      bottom: AttachTo(id: 'green', edge: Edge.top),
+      left: AttachToParent(),
+      right: AttachTo(id: 'green', edge: Edge.left),
+      child: Square(Colors.blue),
+    ),
+    // Items can be attached to different targets to position them in the desired way.
+    ConstrainedItem(
+      id: 'orange',
+      top: AttachTo(id: 'blue', edge: Edge.bottom),
+      bottom: AttachTo(id: 'green', edge: Edge.top),
+      left: AttachToParent(),
+      right: AttachTo(id: 'red', edge: Edge.right),
+      child: Square(Colors.orange),
+    ),
+    // Unconstrained items are aligned to the top left corner of the parent.
+    ConstrainedItem(
+      id: 'yellow',
+      child: Square(Colors.yellow),
+    ),
+  ],
+)
 ```
-
-## Additional information
-
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
