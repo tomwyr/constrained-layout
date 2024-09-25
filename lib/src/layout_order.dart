@@ -6,8 +6,8 @@ class ConstrainedLayoutOrder {
 
   List<ConstrainedItem> ofItems(List<ConstrainedItem> items) {
     final itemsInLayoutOrder = <ConstrainedItem>[];
-    final itemsByKey = {
-      for (var item in items) item.child.key: item,
+    final itemsById = {
+      for (var item in items) item.id: item,
     };
     final unresolvedEdges = {
       for (var item in items) item: {...Edge.values},
@@ -25,8 +25,8 @@ class ConstrainedLayoutOrder {
             case null || AttachToParent():
               return true;
 
-            case AttachTo(:var key, :var edge):
-              final targetUnresolvedEdges = unresolvedEdges[itemsByKey[key]] ?? {};
+            case AttachTo(:var id, :var edge):
+              final targetUnresolvedEdges = unresolvedEdges[itemsById[id]] ?? {};
               return !targetUnresolvedEdges.contains(edge);
           }
         });

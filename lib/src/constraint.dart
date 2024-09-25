@@ -1,16 +1,14 @@
-import 'package:flutter/foundation.dart';
-
 sealed class Constraint {}
 
 class AttachToParent extends Constraint {}
 
 class AttachTo extends Constraint {
   AttachTo({
-    required this.key,
+    required this.id,
     required this.edge,
   });
 
-  final Key key;
+  final Object id;
   final Edge edge;
 }
 

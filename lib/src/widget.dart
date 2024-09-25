@@ -3,13 +3,13 @@ import 'package:flutter/widgets.dart';
 import 'constraint.dart';
 import 'layout_delegate.dart';
 
-class ConstrainedLayout extends StatelessWidget {
+class ConstrainedLayout<IdType> extends StatelessWidget {
   const ConstrainedLayout({
     super.key,
     required this.items,
   });
 
-  final List<ConstrainedItem> items;
+  final List<ConstrainedItem<IdType>> items;
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +22,9 @@ class ConstrainedLayout extends StatelessWidget {
   }
 }
 
-class ConstrainedItem {
+class ConstrainedItem<IdType> {
   ConstrainedItem({
+    required this.id,
     this.top,
     this.bottom,
     this.left,
@@ -31,6 +32,7 @@ class ConstrainedItem {
     required this.child,
   });
 
+  final IdType id;
   final Constraint? top;
   final Constraint? bottom;
   final Constraint? left;
