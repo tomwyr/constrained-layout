@@ -22,10 +22,10 @@ class ConstrainedLayoutOrder {
 
         edges.removeWhere((edge) {
           switch (item.constraintAlong(edge)) {
-            case null || AttachToParent():
+            case null || LinkToParent():
               return true;
 
-            case AttachTo(:var id, :var edge):
+            case LinkTo(:var id, :var edge):
               final targetUnresolvedEdges = unresolvedEdges[itemsById[id]] ?? {};
               return !targetUnresolvedEdges.contains(edge);
           }

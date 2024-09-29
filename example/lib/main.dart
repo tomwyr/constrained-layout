@@ -23,10 +23,10 @@ class ExampleApp extends StatelessWidget {
           ),
           ConstrainedItem(
             id: 'red',
-            top: AttachToParent(),
-            bottom: AttachToParent(),
-            left: AttachToParent(),
-            right: AttachToParent(),
+            top: LinkToParent(),
+            bottom: LinkToParent(),
+            left: LinkToParent(),
+            right: LinkToParent(),
             child: Container(
               width: 50,
               height: 50,
@@ -35,9 +35,9 @@ class ExampleApp extends StatelessWidget {
           ),
           ConstrainedItem(
             id: 'green',
-            top: AttachToParent(),
-            bottom: AttachTo(id: 'red', edge: Edge.top),
-            left: AttachToParent(),
+            top: LinkToParent(),
+            bottom: LinkTo(id: 'red', edge: Edge.top),
+            left: LinkToParent(),
             child: Container(
               width: 80,
               height: 20,
@@ -46,9 +46,9 @@ class ExampleApp extends StatelessWidget {
           ),
           ConstrainedItem(
             id: 'blue',
-            top: AttachTo(id: 'green', edge: Edge.top),
-            left: AttachTo(id: 'red', edge: Edge.left),
-            right: AttachToParent(),
+            top: LinkTo(id: 'green', edge: Edge.top),
+            left: LinkTo(id: 'red', edge: Edge.left),
+            right: LinkToParent(),
             child: Container(
               width: 40,
               height: 60,
@@ -57,10 +57,10 @@ class ExampleApp extends StatelessWidget {
           ),
           ConstrainedItem(
             id: 'orange',
-            top: AttachTo(id: 'red', edge: Edge.top),
-            bottom: AttachToParent(),
-            left: AttachTo(id: 'blue', edge: Edge.right),
-            right: AttachToParent(),
+            top: LinkTo(id: 'red', edge: Edge.top),
+            bottom: LinkToParent(),
+            left: LinkTo(id: 'blue', edge: Edge.right),
+            right: LinkToParent(),
             child: Container(
               width: 80,
               height: 50,
@@ -69,10 +69,10 @@ class ExampleApp extends StatelessWidget {
           ),
           ConstrainedItem(
             id: 'indigo',
-            top: AttachTo(id: 'orange', edge: Edge.bottom),
-            bottom: AttachToParent(),
-            left: AttachTo(id: 'green', edge: Edge.right),
-            right: AttachTo(id: 'green', edge: Edge.right),
+            top: LinkTo(id: 'orange', edge: Edge.bottom),
+            bottom: LinkToParent(),
+            left: LinkTo(id: 'green', edge: Edge.right),
+            right: LinkTo(id: 'green', edge: Edge.right),
             child: Container(
               width: 30,
               height: 30,

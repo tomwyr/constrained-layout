@@ -2,10 +2,10 @@ import 'package:flutter/rendering.dart';
 
 sealed class Constraint {}
 
-class AttachToParent extends Constraint {}
+class LinkToParent extends Constraint {}
 
-class AttachTo<IdType> extends Constraint {
-  AttachTo({
+class LinkTo<IdType> extends Constraint {
+  LinkTo({
     required this.id,
     required this.edge,
   });

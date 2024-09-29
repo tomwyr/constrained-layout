@@ -7,36 +7,36 @@ A flexible Flutter layout allowing to position widgets by declaring relations be
 ```dart
 ConstrainedLayout(
   items: [
-    // Use AttachToParent to position item at the parent's edges.
+    // Use LinkToParent to position item at the parent's edges.
     ConstrainedItem(
       id: 'red',
-      bottom: AttachToParent(),
-      right: AttachToParent(),
+      bottom: LinkToParent(),
+      right: LinkToParent(),
       child: Square(Colors.red),
     ),
-    // Use AttachTo to position item in relation to the target item.
+    // Use LinkTo to position item in relation to the target item.
     ConstrainedItem(
       id: 'green',
-      bottom: AttachTo(id: 'red', edge: Edge.top),
-      right: AttachTo(id: 'red', edge: Edge.left),
+      bottom: LinkTo(id: 'red', edge: Edge.top),
+      right: LinkTo(id: 'red', edge: Edge.left),
       child: Square(Colors.green),
     ),
-    // Attaching both horizontal or vertical edges will center item between target edges.
+    // Linking both horizontal or vertical edges will center item between target edges.
     ConstrainedItem(
       id: 'blue',
-      top: AttachToParent(),
-      bottom: AttachTo(id: 'green', edge: Edge.top),
-      left: AttachToParent(),
-      right: AttachTo(id: 'green', edge: Edge.left),
+      top: LinkToParent(),
+      bottom: LinkTo(id: 'green', edge: Edge.top),
+      left: LinkToParent(),
+      right: LinkTo(id: 'green', edge: Edge.left),
       child: Square(Colors.blue),
     ),
-    // Items can be attached to different targets to position them in the desired way.
+    // Items can be linked to different targets to position them in the desired way.
     ConstrainedItem(
       id: 'orange',
-      top: AttachTo(id: 'blue', edge: Edge.bottom),
-      bottom: AttachTo(id: 'green', edge: Edge.top),
-      left: AttachToParent(),
-      right: AttachTo(id: 'red', edge: Edge.right),
+      top: LinkTo(id: 'blue', edge: Edge.bottom),
+      bottom: LinkTo(id: 'green', edge: Edge.top),
+      left: LinkToParent(),
+      right: LinkTo(id: 'red', edge: Edge.right),
       child: Square(Colors.orange),
     ),
     // Unconstrained items are aligned to the top left corner of the parent.
