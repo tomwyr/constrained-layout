@@ -10,5 +10,11 @@
       "type": "dart",
       "cwd": "example"
     },
+    {
+      "name": "composer",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "composer"
+    },
   ]
 }
