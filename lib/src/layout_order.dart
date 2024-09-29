@@ -21,7 +21,7 @@ class ConstrainedLayoutOrder {
         final edges = unresolvedEdges[item] ?? {};
 
         edges.removeWhere((edge) {
-          switch (item.constraintAt(edge)) {
+          switch (item.constraintAlong(edge)) {
             case null || AttachToParent():
               return true;
 

@@ -30,7 +30,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
     final itemsInLayoutOrder = layoutOrder.ofItems(items);
 
     for (var item in itemsInLayoutOrder) {
-      final itemSize = layoutChild(item.child, BoxConstraints.loose(parentSize));
+      final itemSize = layoutChild(item.id, BoxConstraints.loose(parentSize));
       sizesById[item.id] = itemSize;
     }
 
@@ -201,7 +201,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
 
       final offset = Offset(calcPosX(), calcPosY());
       offsetsById[item.id] = offset;
-      positionChild(item.child, offset);
+      positionChild(item.id, offset);
     }
   }
 
