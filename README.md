@@ -4,6 +4,8 @@ A flexible Flutter layout allowing to position widgets by declaring relations be
 
 ## Usage
 
+Add `ConstrainedLayout` to the widget tree:
+
 ```dart
 ConstrainedLayout(
   items: [
@@ -47,3 +49,7 @@ ConstrainedLayout(
   ],
 )
 ```
+
+The widget will use defined relations to determine the layout positions and sizes of its children:
+
+<img width="539" alt="example" src="https://github.com/user-attachments/assets/22978362-9844-46cf-8df1-9c3585693a65">
