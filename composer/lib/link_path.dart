@@ -15,7 +15,7 @@ class LinkPath extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: TargetPathPainter(
+      painter: LinkPathPainter(
         active: active,
         from: from,
         to: to,
@@ -24,8 +24,8 @@ class LinkPath extends StatelessWidget {
   }
 }
 
-class TargetPathPainter extends CustomPainter {
-  TargetPathPainter({
+class LinkPathPainter extends CustomPainter {
+  LinkPathPainter({
     required this.active,
     required this.from,
     required this.to,
@@ -44,7 +44,7 @@ class TargetPathPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(TargetPathPainter oldDelegate) {
+  bool shouldRepaint(LinkPathPainter oldDelegate) {
     return oldDelegate.from != from || oldDelegate.to != to;
   }
 }

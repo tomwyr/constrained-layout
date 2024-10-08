@@ -39,6 +39,13 @@ class ConstrainedItem<IdType> {
   final Constraint? right;
   final Widget child;
 
+  Map<Edge, Constraint?> get constraints => {
+        Edge.top: top,
+        Edge.bottom: bottom,
+        Edge.left: left,
+        Edge.right: right,
+      };
+
   Constraint? constraintAlong(Edge edge) {
     return switch (edge) {
       Edge.top => top,

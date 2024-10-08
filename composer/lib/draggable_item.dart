@@ -9,7 +9,6 @@ class DraggableItem<IdType> extends StatefulWidget {
   const DraggableItem({
     super.key,
     required this.itemId,
-    required this.handleKeyBuilder,
     required this.onLink,
     required this.onDragStart,
     required this.onDragUpdate,
@@ -17,7 +16,6 @@ class DraggableItem<IdType> extends StatefulWidget {
   });
 
   final IdType itemId;
-  final Key Function(IdType itemId, Edge edge) handleKeyBuilder;
   final void Function(Edge edge, LinkNode<IdType> node) onLink;
   final void Function(Edge edge) onDragStart;
   final void Function(Edge edge, Offset delta) onDragUpdate;
@@ -61,20 +59,18 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
   }
 
   Widget itemBox() {
-    return Card(
-      color: color,
-      elevation: active ? 8 : 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+        ),
+        color: color,
       ),
     );
   }
 
   Widget itemHandle(Edge edge) {
-    final dot = DotHandle(
-      key: widget.handleKeyBuilder(widget.itemId, edge),
-      size: 8,
-    );
+    final dot = DotHandle(edge: edge, size: 8);
 
     return Align(
       alignment: edge.toAlignment(),
@@ -114,22 +110,15 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
 class ParentItemTarget<IdType> extends StatelessWidget {
   const ParentItemTarget({
     super.key,
-    required this.handleKey,
     required this.edge,
     required this.onLink,
   });
 
-  final Key handleKey;
   final Edge edge;
   final void Function(LinkNode<IdType> node) onLink;
 
   @override
   Widget build(BuildContext context) {
-    final dot = Transform.translate(
-      offset: offset(6),
-      child: DotHandle(key: handleKey, size: 12),
-    );
-
     return Align(
       alignment: edge.toAlignment(),
       child: DragTarget<LinkNode<IdType>>(
@@ -138,7 +127,9 @@ class ParentItemTarget<IdType> extends StatelessWidget {
             onLink(node);
           }
         },
-        builder: (context, candidateData, rejectedData) => dot,
+        builder: (context, candidateData, rejectedData) {
+          return DotHandle(edge: edge, size: 12);
+        },
       ),
     );
   }
@@ -166,27 +157,42 @@ class LinkNode<IdType> {
 class DotHandle extends StatelessWidget {
   const DotHandle({
     super.key,
+    required this.edge,
     required this.size,
   });
 
+  final Edge edge;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    return HoverRegion(
-      builder: (hovered) => AnimatedScale(
-        duration: const Duration(milliseconds: 100),
-        scale: hovered ? 1.5 : 1,
-        child: Container(
-          width: size,
-          height: size,
-          margin: const EdgeInsets.all(2),
-          decoration: ShapeDecoration(
-            shape: const CircleBorder(),
-            color: Colors.amber[700],
+    return Transform.translate(
+      offset: edge.layoutOffset(size / 2),
+      child: HoverRegion(
+        builder: (hovered) => AnimatedScale(
+          duration: const Duration(milliseconds: 100),
+          scale: hovered ? 1.5 : 1,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: ShapeDecoration(
+              shape: const CircleBorder(),
+              color: Colors.amber[700],
+            ),
           ),
         ),
       ),
     );
+  }
+}
+
+extension on Edge {
+  Offset layoutOffset(double value) {
+    return switch (this) {
+      Edge.top => Offset(0, -value),
+      Edge.bottom => Offset(0, value),
+      Edge.left => Offset(-value, 0),
+      Edge.right => Offset(value, 0),
+    };
   }
 }

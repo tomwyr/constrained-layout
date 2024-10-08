@@ -1,9 +1,11 @@
 import 'package:constrained_layout/constrained_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'draggable_item.dart';
-import 'item_list.dart';
+import 'extensions/map.dart';
 import 'link_path.dart';
+import 'utils/widget_code.dart';
 
 class Composer extends StatefulWidget {
   const Composer({super.key});
@@ -14,59 +16,114 @@ class Composer extends StatefulWidget {
 
 class _ComposerState extends State<Composer> {
   final layoutKey = GlobalKey();
-  final handleKeys = <String, GlobalKey>{};
+  final handleKeys = <int?, GlobalKey>{};
 
-  var itemListExpanded = false;
   var itemIdCounter = 0;
   var items = <ConstrainedItem<int>>[];
+  var itemLinks = <Widget>[];
+  var showCode = true;
 
   ComposerDragData? dragData;
 
   bool get dragging => dragData != null;
 
-  GlobalKey handleKeyFor(int? itemId, Edge edge) {
-    final id = '$itemId ${edge.name}';
-    return handleKeys.putIfAbsent(id, () => GlobalKey(debugLabel: id));
+  GlobalKey handleKeyFor(int itemId) {
+    return handleKeys.putIfAbsent(itemId, () => GlobalKey());
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          children: [
-            toggleListButton(),
-            addItemButton(),
-          ],
-        ),
+        layoutActions(),
+        const SizedBox(height: 4),
         Expanded(
-          child: Stack(
-            children: [
-              ConstrainedLayout(
-                key: layoutKey,
-                items: items,
-              ),
-              if (dragging) ...[
-                targetPath(),
-                parentHandles(),
-              ],
-              if (itemListExpanded) itemList(),
-            ],
+          child: layoutBody(),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  Widget layoutBody() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(width: 12),
+        Expanded(
+          child: ColoredBox(
+            color: Colors.grey[200]!,
+            child: layoutBuilder(),
           ),
+        ),
+        if (showCode) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: ColoredBox(
+              color: Colors.grey[200]!,
+              child: layoutCode(),
+            ),
+          ),
+        ],
+        const SizedBox(width: 12),
+      ],
+    );
+  }
+
+  Widget layoutActions() {
+    return Row(
+      children: [
+        addItemButton(),
+        clearItemsButton(),
+        toggleCodeButton(),
+      ],
+    );
+  }
+
+  Widget layoutBuilder() {
+    return Stack(
+      children: [
+        ...itemLinks,
+        if (dragging) ...[
+          dragLink(),
+          parentHandles(),
+        ],
+        ConstrainedLayout(
+          key: layoutKey,
+          items: items,
         ),
       ],
     );
   }
 
-  Widget targetPath() {
-    final handleBox = dragHandleBox();
-    final layoutBox = constrainedLayoutBox();
-    final handleCenter = Offset(handleBox.size.width / 2, handleBox.size.height / 2);
+  Widget layoutCode() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: SelectableText(
+        ConstrainedLayout(items: items).widgetCode,
+      ),
+    );
+  }
 
-    final from = handleBox.localToGlobal(handleCenter) - layoutBox.localToGlobal(Offset.zero);
+  Widget dragLink() {
+    final LinkNode(:itemId, :edge) = dragData!.origin;
+    final from = positionOfEdge(itemId, edge);
     final to = from + dragData!.delta;
-
     return LinkPath(active: true, from: from, to: to);
+  }
+
+  Widget itemLink(int itemId, Edge edge, Constraint constraint) {
+    final from = positionOfEdge(itemId, edge);
+    final to = switch (constraint) {
+      LinkToParent() => positionOfEdge(null, edge),
+      LinkTo(:var id, :var edge) => positionOfEdge(id, edge),
+    };
+    return LinkPath(active: false, from: from, to: to);
+  }
+
+  Offset positionOfEdge(int? itemId, Edge edge) {
+    final edgeLayoutKey = itemId != null ? handleKeyFor(itemId) : layoutKey;
+    return edgeLayoutKey.centerOfEdge(edge) - layoutKey.origin;
   }
 
   RenderBox constrainedLayoutBox() {
@@ -75,15 +132,6 @@ class _ComposerState extends State<Composer> {
       throw 'Unable to access layout position';
     }
     return layoutBox;
-  }
-
-  RenderBox dragHandleBox() {
-    final LinkNode(:itemId, :edge) = dragData!.origin;
-    final handleBox = handleKeyFor(itemId, edge).currentContext?.findRenderObject();
-    if (handleBox is! RenderBox) {
-      throw 'Unable to access item\'s handle position';
-    }
-    return handleBox;
   }
 
   Widget parentHandles() {
@@ -103,41 +151,36 @@ class _ComposerState extends State<Composer> {
     return Align(
       alignment: edge.toAlignment(),
       child: ParentItemTarget<int>(
-        handleKey: handleKeyFor(null, edge),
         edge: edge,
         onLink: (node) => linkItem(null, edge, node),
       ),
     );
   }
 
-  Widget itemList() {
-    return Positioned(
-      left: 8,
-      top: 0,
-      child: ItemList(
-        items: items,
-        onRemove: removeItem,
-      ),
+  Widget addItemButton() {
+    return ComposerActionButton(
+      icon: Icons.add,
+      onClick: addNewItem,
     );
   }
 
-  Widget toggleListButton() {
+  Widget clearItemsButton() {
     return ComposerActionButton(
-      alignment: Alignment.topRight,
-      icon: Icons.list,
+      icon: Icons.delete,
       onClick: () {
-        setState(() {
-          itemListExpanded = !itemListExpanded;
-        });
+        setItems([]);
       },
     );
   }
 
-  Widget addItemButton() {
+  Widget toggleCodeButton() {
     return ComposerActionButton(
-      alignment: Alignment.bottomRight,
-      icon: Icons.add,
-      onClick: addNewItem,
+      icon: Icons.code,
+      onClick: () {
+        setState(() {
+          showCode = !showCode;
+        });
+      },
     );
   }
 
@@ -145,8 +188,8 @@ class _ComposerState extends State<Composer> {
     final itemId = itemIdCounter++;
 
     final child = DraggableItem(
+      key: handleKeyFor(itemId),
       itemId: itemId,
-      handleKeyBuilder: handleKeyFor,
       onLink: (edge, node) => linkItem(itemId, edge, node),
       onDragStart: (edge) {
         setState(() {
@@ -173,26 +216,38 @@ class _ComposerState extends State<Composer> {
 
     final item = ConstrainedItem(id: itemId, child: child);
 
-    setState(() {
-      items = [...items, item];
-    });
+    setItems([...items, item]);
   }
 
   void removeItem(ConstrainedItem item) {
-    setState(() {
-      items = [
-        for (var nextItem in items)
-          if (nextItem.id != item.id) nextItem,
-      ];
-    });
+    setItems([
+      for (var nextItem in items)
+        if (nextItem.id != item.id) nextItem,
+    ]);
   }
 
   void replaceItem(ConstrainedItem<int> item) {
+    setItems([
+      for (var nextItem in items)
+        if (nextItem.id != item.id) nextItem else item,
+    ]);
+  }
+
+  void setItems(List<ConstrainedItem<int>> items) {
     setState(() {
-      items = [
-        for (var nextItem in items)
-          if (nextItem.id != item.id) nextItem else item,
+      this.items = items;
+    });
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      final itemLinks = [
+        for (var item in items)
+          for (var (edge, constraint) in item.constraints.records)
+            if (constraint != null) itemLink(item.id, edge, constraint),
       ];
+
+      setState(() {
+        this.itemLinks = itemLinks;
+      });
     });
   }
 
@@ -207,28 +262,49 @@ class _ComposerState extends State<Composer> {
 class ComposerActionButton extends StatelessWidget {
   const ComposerActionButton({
     super.key,
-    required this.alignment,
     required this.icon,
     required this.onClick,
   });
 
-  final Alignment alignment;
   final IconData icon;
   final VoidCallback onClick;
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: alignment,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: FloatingActionButton.small(
-          onPressed: onClick,
-          child: Icon(icon),
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: FloatingActionButton.small(
+        onPressed: onClick,
+        child: Icon(icon),
       ),
     );
   }
 }
 
-typedef ComposerDragData = ({LinkNode origin, Offset delta});
+typedef ComposerDragData = ({LinkNode<int> origin, Offset delta});
+
+extension on GlobalKey {
+  Offset get origin {
+    return requireRenderBox().localToGlobal(Offset.zero);
+  }
+
+  Offset centerOfEdge(Edge edge) {
+    final box = requireRenderBox();
+    final Size(:width, :height) = box.size;
+    final localCenter = switch (edge) {
+      Edge.top => Offset(width / 2, 0),
+      Edge.bottom => Offset(width / 2, height),
+      Edge.left => Offset(0, height / 2),
+      Edge.right => Offset(width, height / 2),
+    };
+    return box.localToGlobal(localCenter);
+  }
+
+  RenderBox requireRenderBox() {
+    final box = currentContext?.findRenderObject();
+    if (box is! RenderBox) {
+      throw 'Unable to access widget\'s render object';
+    }
+    return box;
+  }
+}
