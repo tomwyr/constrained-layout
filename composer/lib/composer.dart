@@ -24,6 +24,7 @@ class _ComposerState extends State<Composer> {
   var showCode = true;
 
   ComposerDragData? dragData;
+  BoxConstraints? lastConstraints;
 
   bool get dragging => dragData != null;
 
@@ -51,6 +52,7 @@ class _ComposerState extends State<Composer> {
       children: [
         const SizedBox(width: 12),
         Expanded(
+          flex: 2,
           child: ColoredBox(
             color: Colors.grey[200]!,
             child: layoutBuilder(),
@@ -59,6 +61,7 @@ class _ComposerState extends State<Composer> {
         if (showCode) ...[
           const SizedBox(width: 12),
           Expanded(
+            flex: 1,
             child: ColoredBox(
               color: Colors.grey[200]!,
               child: layoutCode(),
@@ -81,18 +84,24 @@ class _ComposerState extends State<Composer> {
   }
 
   Widget layoutBuilder() {
-    return Stack(
-      children: [
-        ...itemLinks,
-        if (dragging) ...[
-          dragLink(),
-          parentHandles(),
-        ],
-        ConstrainedLayout(
-          key: layoutKey,
-          items: items,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        syncLayout(constraints);
+
+        return Stack(
+          children: [
+            ...itemLinks,
+            if (dragging) ...[
+              dragLink(),
+              parentHandles(),
+            ],
+            ConstrainedLayout(
+              key: layoutKey,
+              items: items,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -237,7 +246,18 @@ class _ComposerState extends State<Composer> {
     setState(() {
       this.items = items;
     });
+    syncItemLinks();
+  }
 
+  void syncLayout(BoxConstraints constraints) {
+    if (lastConstraints != null && lastConstraints != constraints) {
+      lastConstraints = constraints;
+      syncItemLinks();
+    }
+    lastConstraints = constraints;
+  }
+
+  void syncItemLinks() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       final itemLinks = [
         for (var item in items)
