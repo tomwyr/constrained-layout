@@ -1,0 +1,43 @@
+name: Build and deploy the repository website to GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+
+      - name: Build Flutter app
+        working-directory: composer
+        run: flutter build web --release
+
+      - name: Prepare sources for deployment
+        working-directory: showcase
+        run: |
+          # Create a directory to store the Flutter build output
+          mkdir flutter
+          # Copy the built Flutter web app from the 'composer' directory
+          cp -r ../composer/build/web/* flutter/
+          # Create a symbolic link to ensure assets are correctly referenced
+          ln -s flutter/assets assets
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./showcase

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="flutter/favicon.png">
+    <title>Constrained Layout</title>
+</head>
+
+<body>
+    <h1>Constrained Layout</h1>
+
+    <p>Build layouts by defining relations between the children widgets.</p>
+
+    <!-- Div for embedding the Flutter app -->
+    <section id="flutter-component">
+        <h2>Playground</h2>
+        <div id="flutter-container" style="width: 100%; height: 500px;"></div>
+    </section>
+
+    <footer>
+        <a href="https://github.com/tomwyr/constrained-layout">Visit the repository for more info.</a>
+    </footer>
+
+    <!-- Load the Flutter web app -->
+    <script src="flutter/flutter.js"></script>
+
+    <script>
+        // Initialize Flutter app and wait for it to be ready
+        window.addEventListener('load', async () => {
+            _flutter.loader.loadEntrypoint({
+                entrypointUrl: 'flutter/main.dart.js',
+                onEntrypointLoaded: async function (engineInitializer) {
+                    let appRunner = await engineInitializer.initializeEngine({
+                        hostElement: document.querySelector("#flutter-container")
+                    });
+                    await appRunner.runApp();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
