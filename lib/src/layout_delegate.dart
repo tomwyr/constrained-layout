@@ -214,7 +214,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
     final idsInUse = <Object>{};
     for (var item in items) {
       if (!idsInUse.add(item.id)) {
-        throw 'Id ${item.id} is already in use';
+        throw 'Id ${item.id} is already used by another item';
       }
     }
   }

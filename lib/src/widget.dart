@@ -65,4 +65,15 @@ class ConstrainedItem<IdType> {
       child: child,
     );
   }
+
+  ConstrainedItem<IdType> withConstraintsOf(ConstrainedItem<IdType> item) {
+    return ConstrainedItem(
+      id: id,
+      top: item.top,
+      bottom: item.bottom,
+      left: item.left,
+      right: item.right,
+      child: child,
+    );
+  }
 }

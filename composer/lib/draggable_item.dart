@@ -9,14 +9,20 @@ class DraggableItem<IdType> extends StatefulWidget {
   const DraggableItem({
     super.key,
     required this.itemId,
-    required this.onLink,
+    required this.onLinkPreview,
+    required this.onLinkCancel,
+    required this.onLinkConfirm,
     required this.onDragStart,
     required this.onDragUpdate,
     required this.onDragEnd,
   });
 
+  static Color colorOf(ConstrainedItem item) => _colorForId(item.id);
+
   final IdType itemId;
-  final void Function(Edge edge, LinkNode<IdType> node) onLink;
+  final void Function(Edge edge) onLinkPreview;
+  final void Function() onLinkCancel;
+  final void Function(Edge edge, LinkNode<IdType> node) onLinkConfirm;
   final void Function(Edge edge) onDragStart;
   final void Function(Edge edge, Offset delta) onDragUpdate;
   final void Function(Edge edge) onDragEnd;
@@ -26,8 +32,6 @@ class DraggableItem<IdType> extends StatefulWidget {
 }
 
 class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
-  late final color = randomizeColor();
-
   var hovered = false;
   var dragging = false;
 
@@ -35,36 +39,23 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 50,
-      height: 50,
-      child: HoverRegion.listener(
-        onChange: (value) {
-          setState(() => hovered = value);
-        },
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            itemBox(),
-            if (active) ...[
-              itemHandle(Edge.top),
-              itemHandle(Edge.bottom),
-              itemHandle(Edge.left),
-              itemHandle(Edge.right),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget itemBox() {
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
-        color: color,
+    return HoverRegion.listener(
+      onChange: (value) {
+        setState(() => hovered = value);
+      },
+      child: ItemSquare(
+        color: _colorForId(widget.itemId),
+        child: active
+            ? Stack(
+                fit: StackFit.expand,
+                children: [
+                  itemHandle(Edge.top),
+                  itemHandle(Edge.bottom),
+                  itemHandle(Edge.left),
+                  itemHandle(Edge.right),
+                ],
+              )
+            : null,
       ),
     );
   }
@@ -75,9 +66,11 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
     return Align(
       alignment: edge.toAlignment(),
       child: DragTarget<LinkNode<IdType>>(
+        onMove: (details) => widget.onLinkPreview(edge),
+        onLeave: (data) => widget.onLinkCancel(),
         onAcceptWithDetails: (details) {
           if (details.data.itemId != widget.itemId) {
-            widget.onLink(edge, details.data);
+            widget.onLinkConfirm(edge, details.data);
           }
         },
         builder: (context, candidateData, rejectedData) => Draggable<LinkNode<IdType>>(
@@ -100,31 +93,32 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
       ),
     );
   }
-
-  Color randomizeColor() {
-    final zeroToOne = Random().nextDouble();
-    return Color(0xff000000 + 0xffffff * zeroToOne ~/ 2);
-  }
 }
 
 class ParentItemTarget<IdType> extends StatelessWidget {
   const ParentItemTarget({
     super.key,
     required this.edge,
-    required this.onLink,
+    required this.onLinkPreview,
+    required this.onLinkCancel,
+    required this.onLinkConfirm,
   });
 
   final Edge edge;
-  final void Function(LinkNode<IdType> node) onLink;
+  final void Function() onLinkPreview;
+  final void Function() onLinkCancel;
+  final void Function(LinkNode<IdType> node) onLinkConfirm;
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: edge.toAlignment(),
       child: DragTarget<LinkNode<IdType>>(
+        onMove: (details) => onLinkPreview(),
+        onLeave: (data) => onLinkPreview(),
         onAcceptWithDetails: (details) {
           if (details.data case LinkNode<IdType> node) {
-            onLink(node);
+            onLinkConfirm(node);
           }
         },
         builder: (context, candidateData, rejectedData) {
@@ -144,14 +138,32 @@ class ParentItemTarget<IdType> extends StatelessWidget {
   }
 }
 
-class LinkNode<IdType> {
-  LinkNode({
-    required this.itemId,
-    required this.edge,
+class ItemSquare extends StatelessWidget {
+  const ItemSquare({
+    super.key,
+    required this.color,
+    this.child,
   });
 
-  final IdType? itemId;
-  final Edge edge;
+  final Color color;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
+          ),
+          color: color,
+        ),
+        child: child,
+      ),
+    );
+  }
 }
 
 class DotHandle extends StatelessWidget {
@@ -186,6 +198,16 @@ class DotHandle extends StatelessWidget {
   }
 }
 
+class LinkNode<IdType> {
+  LinkNode({
+    required this.itemId,
+    required this.edge,
+  });
+
+  final IdType? itemId;
+  final Edge edge;
+}
+
 extension on Edge {
   Offset layoutOffset(double value) {
     return switch (this) {
@@ -195,4 +217,11 @@ extension on Edge {
       Edge.right => Offset(value, 0),
     };
   }
+}
+
+final _colorsById = <dynamic, Color>{};
+Color _colorForId(dynamic id) => _colorsById.putIfAbsent(id, _randomizeColor);
+Color _randomizeColor() {
+  final zeroToOne = Random().nextDouble();
+  return Color(0xff000000 + 0xffffff * zeroToOne ~/ 2);
 }
