@@ -66,8 +66,16 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
     return Align(
       alignment: edge.toAlignment(),
       child: DragTarget<LinkNode<IdType>>(
-        onMove: (details) => widget.onLinkPreview(edge),
-        onLeave: (data) => widget.onLinkCancel(),
+        onMove: (details) {
+          if (details.data.itemId != widget.itemId) {
+            widget.onLinkPreview(edge);
+          }
+        },
+        onLeave: (data) {
+          if (data?.itemId != widget.itemId) {
+            widget.onLinkCancel();
+          }
+        },
         onAcceptWithDetails: (details) {
           if (details.data.itemId != widget.itemId) {
             widget.onLinkConfirm(edge, details.data);
@@ -114,11 +122,19 @@ class ParentItemTarget<IdType> extends StatelessWidget {
     return Align(
       alignment: edge.toAlignment(),
       child: DragTarget<LinkNode<IdType>>(
-        onMove: (details) => onLinkPreview(),
-        onLeave: (data) => onLinkPreview(),
+        onMove: (details) {
+          if (details.data.itemId != null) {
+            onLinkPreview();
+          }
+        },
+        onLeave: (data) {
+          if (data?.itemId != null) {
+            onLinkPreview();
+          }
+        },
         onAcceptWithDetails: (details) {
-          if (details.data case LinkNode<IdType> node) {
-            onLinkConfirm(node);
+          if (details.data.itemId != null) {
+            onLinkConfirm(details.data);
           }
         },
         builder: (context, candidateData, rejectedData) {
