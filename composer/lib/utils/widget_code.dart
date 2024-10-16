@@ -1,6 +1,6 @@
 import 'package:constrained_layout/constrained_layout.dart';
 
-import '../extensions/map.dart';
+import 'extensions.dart';
 
 extension ConstrainedLayoutWidgetCode on ConstrainedLayout {
   String get widgetCode {

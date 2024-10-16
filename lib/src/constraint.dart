@@ -28,4 +28,11 @@ enum Edge {
       Edge.right => Alignment.centerRight,
     };
   }
+
+  Axis get axis {
+    return switch (this) {
+      Edge.top || Edge.bottom => Axis.vertical,
+      Edge.left || Edge.right => Axis.horizontal,
+    };
+  }
 }

@@ -9,7 +9,7 @@ class DraggableItem<IdType> extends StatefulWidget {
   const DraggableItem({
     super.key,
     required this.itemId,
-    required this.onLinkPreview,
+    required this.onLinkCandidate,
     required this.onLinkCancel,
     required this.onLinkConfirm,
     required this.onDragStart,
@@ -20,7 +20,7 @@ class DraggableItem<IdType> extends StatefulWidget {
   static Color colorOf(ConstrainedItem item) => _colorForId(item.id);
 
   final IdType itemId;
-  final void Function(Edge edge) onLinkPreview;
+  final void Function(Edge edge) onLinkCandidate;
   final void Function() onLinkCancel;
   final void Function(Edge edge, LinkNode<IdType> node) onLinkConfirm;
   final void Function(Edge edge) onDragStart;
@@ -68,7 +68,7 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
       child: DragTarget<LinkNode<IdType>>(
         onMove: (details) {
           if (details.data.itemId != widget.itemId) {
-            widget.onLinkPreview(edge);
+            widget.onLinkCandidate(edge);
           }
         },
         onLeave: (data) {
@@ -107,13 +107,13 @@ class ParentItemTarget<IdType> extends StatelessWidget {
   const ParentItemTarget({
     super.key,
     required this.edge,
-    required this.onLinkPreview,
+    required this.onLinkCandidate,
     required this.onLinkCancel,
     required this.onLinkConfirm,
   });
 
   final Edge edge;
-  final void Function() onLinkPreview;
+  final void Function() onLinkCandidate;
   final void Function() onLinkCancel;
   final void Function(LinkNode<IdType> node) onLinkConfirm;
 
@@ -124,12 +124,12 @@ class ParentItemTarget<IdType> extends StatelessWidget {
       child: DragTarget<LinkNode<IdType>>(
         onMove: (details) {
           if (details.data.itemId != null) {
-            onLinkPreview();
+            onLinkCandidate();
           }
         },
         onLeave: (data) {
           if (data?.itemId != null) {
-            onLinkPreview();
+            onLinkCancel();
           }
         },
         onAcceptWithDetails: (details) {
@@ -222,6 +222,10 @@ class LinkNode<IdType> {
 
   final IdType? itemId;
   final Edge edge;
+
+  bool canLinkTo(LinkNode<IdType> other) {
+    return edge.axis == other.edge.axis;
+  }
 }
 
 extension on Edge {
