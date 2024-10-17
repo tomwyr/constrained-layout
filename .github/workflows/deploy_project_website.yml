@@ -1,4 +1,4 @@
-name: Build and deploy the repository website to GitHub Pages
+name: Deploy project website to GitHub Pages
 
 on:
   workflow_dispatch:
