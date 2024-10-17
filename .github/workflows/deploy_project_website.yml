@@ -27,7 +27,7 @@ jobs:
         run: flutter build web --release
 
       - name: Prepare sources for deployment
-        working-directory: showcase
+        working-directory: website
         run: |
           # Create a directory to store the Flutter build output
           mkdir flutter
@@ -40,4 +40,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./showcase
+          publish_dir: ./website
