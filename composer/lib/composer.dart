@@ -108,7 +108,8 @@ class _ComposerState extends State<Composer> {
               key: layoutKey,
               items: [
                 ...items,
-                if (linkPreviewData() case (var start, var end)) linkPreviewItem(start, end),
+                if (linkPreviewData() case (var start, var end))
+                  linkPreviewItem(start, end),
               ],
             ),
           ],
@@ -125,7 +126,10 @@ class _ComposerState extends State<Composer> {
     return null;
   }
 
-  ConstrainedItem<int> linkPreviewItem(LinkNode<int> origin, LinkNode<int> target) {
+  ConstrainedItem<int> linkPreviewItem(
+    LinkNode<int> origin,
+    LinkNode<int> target,
+  ) {
     final constraint = switch (target.itemId) {
       null => LinkToParent(),
       var targetId => LinkTo(id: targetId, edge: target.edge),
@@ -139,7 +143,9 @@ class _ComposerState extends State<Composer> {
       ),
     );
 
-    return item.withConstraintsOf(originItem).constrainedAlong(constraint, origin.edge);
+    return item
+        .withConstraintsOf(originItem)
+        .constrainedAlong(constraint, origin.edge);
   }
 
   Widget layoutCode() {
@@ -370,7 +376,8 @@ class _ComposerState extends State<Composer> {
   }
 
   void linkItem(int? itemId, Edge edge, LinkNode<int> node) {
-    final constraint = itemId != null ? LinkTo(id: itemId, edge: edge) : LinkToParent();
+    final constraint =
+        itemId != null ? LinkTo(id: itemId, edge: edge) : LinkToParent();
     final updatedItem = findItem(node).constrainedAlong(constraint, node.edge);
     replaceItem(updatedItem);
   }

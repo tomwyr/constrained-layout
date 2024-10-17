@@ -26,7 +26,8 @@ class ConstrainedLayoutOrder {
               return true;
 
             case LinkTo(:var id, :var edge):
-              final targetUnresolvedEdges = unresolvedEdges[itemsById[id]] ?? {};
+              final targetUnresolvedEdges =
+                  unresolvedEdges[itemsById[id]] ?? {};
               return !targetUnresolvedEdges.contains(edge);
           }
         });

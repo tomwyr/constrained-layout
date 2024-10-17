@@ -81,23 +81,25 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
             widget.onLinkConfirm(edge, details.data);
           }
         },
-        builder: (context, candidateData, rejectedData) => Draggable<LinkNode<IdType>>(
-          data: LinkNode(itemId: widget.itemId, edge: edge),
-          onDragStarted: () {
-            setState(() => dragging = true);
-            widget.onDragStart(edge);
-          },
-          onDragUpdate: (details) {
-            widget.onDragUpdate(edge, details.delta);
-          },
-          onDragEnd: (details) {
-            setState(() => dragging = false);
-            widget.onDragEnd(edge);
-          },
-          feedback: const SizedBox.shrink(),
-          childWhenDragging: dot,
-          child: dot,
-        ),
+        builder: (context, candidateData, rejectedData) {
+          return Draggable<LinkNode<IdType>>(
+            data: LinkNode(itemId: widget.itemId, edge: edge),
+            onDragStarted: () {
+              setState(() => dragging = true);
+              widget.onDragStart(edge);
+            },
+            onDragUpdate: (details) {
+              widget.onDragUpdate(edge, details.delta);
+            },
+            onDragEnd: (details) {
+              setState(() => dragging = false);
+              widget.onDragEnd(edge);
+            },
+            feedback: const SizedBox.shrink(),
+            childWhenDragging: dot,
+            child: dot,
+          );
+        },
       ),
     );
   }

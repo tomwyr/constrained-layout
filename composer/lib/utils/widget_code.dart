@@ -22,7 +22,8 @@ extension on ConstrainedItem {
   String get widgetCode {
     final constraintsCode = [
       for (var (edge, constraint) in constraints.records)
-        if (constraint != null) '${edge.name}: ${constraint.widgetCode}'.linePrefixed('  ' * 4),
+        if (constraint != null)
+          '${edge.name}: ${constraint.widgetCode}'.linePrefixed('  ' * 4),
     ].join('\n');
 
     return [

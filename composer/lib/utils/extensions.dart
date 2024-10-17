@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:constrained_layout/constrained_layout.dart';
+
 extension MapExtensions<K, V> on Map<K, V> {
   Iterable<(K key, V value)> get records sync* {
     for (var entry in entries) {
@@ -20,7 +22,13 @@ extension OffsetExtensions on Offset {
 }
 
 extension CanvasExtensions on Canvas {
-  void drawTriangle(Offset offset, double base, double height, double direction, Paint paint) {
+  void drawTriangle(
+    Offset offset,
+    double base,
+    double height,
+    double direction,
+    Paint paint,
+  ) {
     final points = [
       offset + Offset.fromDirection(direction + pi / 2, base / 2),
       offset + Offset.fromDirection(direction - pi / 2, base / 2),
@@ -29,4 +37,13 @@ extension CanvasExtensions on Canvas {
     final path = Path()..addPolygon(points, true);
     drawPath(path, paint);
   }
+}
+
+extension ConstrainedItemExtensions<IdType> on ConstrainedItem<IdType> {
+  Map<Edge, Constraint?> get constraints => {
+        Edge.top: top,
+        Edge.bottom: bottom,
+        Edge.left: left,
+        Edge.right: right,
+      };
 }

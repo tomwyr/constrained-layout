@@ -23,8 +23,10 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
     final sizesById = <Object, Size>{};
     final offsetsById = <Object, Offset>{};
     layoutById(Object id) => (
-          size: sizesById[id] ?? (throw 'Item size requested before it was laid out'),
-          offset: offsetsById[id] ?? (throw 'Item offset requested before it was positioned'),
+          size: sizesById[id] ??
+              (throw 'Item size requested before it was laid out'),
+          offset: offsetsById[id] ??
+              (throw 'Item offset requested before it was positioned'),
         );
 
     final itemsInLayoutOrder = layoutOrder.ofItems(items);
@@ -49,7 +51,8 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
             final target = layoutById(id);
             return switch (edge) {
               Edge.left => target.offset.dx - itemSize.width,
-              Edge.right => target.offset.dx + target.size.width - itemSize.width,
+              Edge.right =>
+                target.offset.dx + target.size.width - itemSize.width,
               Edge.top ||
               Edge.bottom =>
                 throw 'Horizontal constraint linked to vertical edge $edge',
@@ -65,7 +68,8 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
             final target = layoutById(id);
             return switch (edge) {
               Edge.left => (target.offset.dx - itemSize.width) / 2,
-              Edge.right => (target.offset.dx + target.size.width - itemSize.width) / 2,
+              Edge.right =>
+                (target.offset.dx + target.size.width - itemSize.width) / 2,
               Edge.top ||
               Edge.bottom =>
                 throw 'Horizontal constraint linked to vertical edge $edge',
@@ -85,10 +89,18 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
             final target = layoutById(id);
             return switch (edge) {
               Edge.left => target.offset.dx +
-                  (parentSize.width - target.offset.dx - target.size.width - itemSize.width) / 2,
+                  (parentSize.width -
+                          target.offset.dx -
+                          target.size.width -
+                          itemSize.width) /
+                      2,
               Edge.right => target.offset.dx +
                   target.size.width +
-                  (parentSize.width - target.offset.dx - target.size.width - itemSize.width) / 2,
+                  (parentSize.width -
+                          target.offset.dx -
+                          target.size.width -
+                          itemSize.width) /
+                      2,
               Edge.top ||
               Edge.bottom =>
                 throw 'Horizontal constraint linked to vertical edge $edge',
@@ -130,7 +142,8 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
             final target = layoutById(id);
             return switch (edge) {
               Edge.top => target.offset.dy - itemSize.height,
-              Edge.bottom => target.offset.dy + target.size.height - itemSize.height,
+              Edge.bottom =>
+                target.offset.dy + target.size.height - itemSize.height,
               Edge.left ||
               Edge.right =>
                 throw 'Vertical constraint linked to horizontal edge $edge',
@@ -146,7 +159,8 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
             final target = layoutById(id);
             return switch (edge) {
               Edge.top => (target.offset.dy - itemSize.height) / 2,
-              Edge.bottom => (target.offset.dy + target.size.height - itemSize.height) / 2,
+              Edge.bottom =>
+                (target.offset.dy + target.size.height - itemSize.height) / 2,
               Edge.left ||
               Edge.right =>
                 throw 'Vertical constraint linked to horizontal edge $edge',
@@ -165,11 +179,15 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
           case (LinkTo(:var id, :var edge), LinkToParent()):
             final target = layoutById(id);
             return switch (edge) {
-              Edge.top =>
-                target.offset.dy + (parentSize.height - target.offset.dy - itemSize.height) / 2,
+              Edge.top => target.offset.dy +
+                  (parentSize.height - target.offset.dy - itemSize.height) / 2,
               Edge.bottom => target.offset.dy +
                   target.size.height +
-                  (parentSize.height - target.offset.dy - target.size.height - itemSize.height) / 2,
+                  (parentSize.height -
+                          target.offset.dy -
+                          target.size.height -
+                          itemSize.height) /
+                      2,
               Edge.left ||
               Edge.right =>
                 throw 'Vertical constraint linked to horizontal edge $edge',
