@@ -23,10 +23,8 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
     final sizesById = <Object, Size>{};
     final offsetsById = <Object, Offset>{};
     layoutById(Object id) => (
-          size: sizesById[id] ??
-              (throw 'Item size requested before it was laid out'),
-          offset: offsetsById[id] ??
-              (throw 'Item offset requested before it was positioned'),
+          size: sizesById[id] ?? (throw UnexpectedLayoutError()),
+          offset: offsetsById[id] ?? (throw UnexpectedPositioningError()),
         );
 
     final itemsInLayoutOrder = layoutOrder.ofItems(items);
@@ -40,6 +38,8 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
       final itemSize = sizesById[item.id]!;
 
       double calcPosX() {
+        const axis = Axis.horizontal;
+
         switch ((item.left, item.right)) {
           case (null, null):
             return 0;
@@ -53,9 +53,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
               Edge.left => target.offset.dx - itemSize.width,
               Edge.right =>
                 target.offset.dx + target.size.width - itemSize.width,
-              Edge.top ||
-              Edge.bottom =>
-                throw 'Horizontal constraint linked to vertical edge $edge',
+              Edge.top || Edge.bottom => throw InvalidLinkAxisError(axis, edge),
             };
 
           case (LinkToParent(), null):
@@ -70,9 +68,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
               Edge.left => (target.offset.dx - itemSize.width) / 2,
               Edge.right =>
                 (target.offset.dx + target.size.width - itemSize.width) / 2,
-              Edge.top ||
-              Edge.bottom =>
-                throw 'Horizontal constraint linked to vertical edge $edge',
+              Edge.top || Edge.bottom => throw InvalidLinkAxisError(axis, edge),
             };
 
           case (LinkTo(:var id, :var edge), null):
@@ -80,9 +76,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
             return switch (edge) {
               Edge.left => target.offset.dx,
               Edge.right => target.offset.dx + target.size.width,
-              Edge.top ||
-              Edge.bottom =>
-                throw 'Horizontal constraint linked to vertical edge $edge',
+              Edge.top || Edge.bottom => throw InvalidLinkAxisError(axis, edge),
             };
 
           case (LinkTo(:var id, :var edge), LinkToParent()):
@@ -101,9 +95,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
                           target.size.width -
                           itemSize.width) /
                       2,
-              Edge.top ||
-              Edge.bottom =>
-                throw 'Horizontal constraint linked to vertical edge $edge',
+              Edge.top || Edge.bottom => throw InvalidLinkAxisError(axis, edge),
             };
 
           case (
@@ -116,7 +108,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
               Edge.right => target1.offset.dx + target1.size.width,
               Edge.top ||
               Edge.bottom =>
-                throw 'Horizontal constraint linked to vertical edge $edge1',
+                throw InvalidLinkAxisError(axis, edge1),
             };
             final target2 = layoutById(id2);
             final bottomY = switch (edge2) {
@@ -124,13 +116,15 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
               Edge.right => target2.offset.dx + target2.size.width,
               Edge.top ||
               Edge.bottom =>
-                throw 'Horizontal constraint linked to vertical edge $edge2',
+                throw InvalidLinkAxisError(axis, edge2),
             };
             return topY + (bottomY - topY - itemSize.width) / 2;
         }
       }
 
       double calcPosY() {
+        const axis = Axis.vertical;
+
         switch ((item.top, item.bottom)) {
           case (null, null):
             return 0;
@@ -144,9 +138,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
               Edge.top => target.offset.dy - itemSize.height,
               Edge.bottom =>
                 target.offset.dy + target.size.height - itemSize.height,
-              Edge.left ||
-              Edge.right =>
-                throw 'Vertical constraint linked to horizontal edge $edge',
+              Edge.left || Edge.right => throw InvalidLinkAxisError(axis, edge),
             };
 
           case (LinkToParent(), null):
@@ -161,9 +153,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
               Edge.top => (target.offset.dy - itemSize.height) / 2,
               Edge.bottom =>
                 (target.offset.dy + target.size.height - itemSize.height) / 2,
-              Edge.left ||
-              Edge.right =>
-                throw 'Vertical constraint linked to horizontal edge $edge',
+              Edge.left || Edge.right => throw InvalidLinkAxisError(axis, edge),
             };
 
           case (LinkTo(:var id, :var edge), null):
@@ -171,9 +161,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
             return switch (edge) {
               Edge.top => target.offset.dy,
               Edge.bottom => target.offset.dy + target.size.height,
-              Edge.left ||
-              Edge.right =>
-                throw 'Vertical constraint linked to horizontal edge $edge',
+              Edge.left || Edge.right => throw InvalidLinkAxisError(axis, edge),
             };
 
           case (LinkTo(:var id, :var edge), LinkToParent()):
@@ -188,9 +176,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
                           target.size.height -
                           itemSize.height) /
                       2,
-              Edge.left ||
-              Edge.right =>
-                throw 'Vertical constraint linked to horizontal edge $edge',
+              Edge.left || Edge.right => throw InvalidLinkAxisError(axis, edge),
             };
 
           case (
@@ -203,7 +189,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
               Edge.bottom => target1.offset.dy + target1.size.height,
               Edge.left ||
               Edge.right =>
-                throw 'Vertical constraint linked to horizontal edge $edge1',
+                throw InvalidLinkAxisError(axis, edge1),
             };
             final target2 = layoutById(id2);
             final bottomY = switch (edge2) {
@@ -211,7 +197,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
               Edge.bottom => target2.offset.dy + target2.size.height,
               Edge.left ||
               Edge.right =>
-                throw 'Vertical constraint linked to horizontal edge $edge2',
+                throw InvalidLinkAxisError(axis, edge2),
             };
             return topY + (bottomY - topY - itemSize.height) / 2;
         }
@@ -232,8 +218,54 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
     final idsInUse = <Object>{};
     for (var item in items) {
       if (!idsInUse.add(item.id)) {
-        throw 'Id ${item.id} is already used by another item';
+        throw ItemDuplicateError(item);
       }
     }
+  }
+}
+
+class ItemDuplicateError extends Error {
+  ItemDuplicateError(this.item);
+
+  final ConstrainedItem item;
+
+  @override
+  String toString() {
+    return 'Id ${item.id} is already used by another item';
+  }
+}
+
+class InvalidLinkAxisError extends Error {
+  final Axis axis;
+  final Edge edge;
+
+  InvalidLinkAxisError(this.axis, this.edge);
+
+  @override
+  String toString() {
+    final expectedAxis = switch (axis) {
+      Axis.horizontal => 'Horizontal',
+      Axis.vertical => 'Verticla',
+    };
+    final oppositeAxis = switch (axis) {
+      Axis.horizontal => 'vertical',
+      Axis.vertical => 'horizontal',
+    };
+
+    return '$expectedAxis constraint linked to $oppositeAxis edge $edge';
+  }
+}
+
+class UnexpectedLayoutError extends Error {
+  @override
+  String toString() {
+    return 'Item size requested before it was laid out';
+  }
+}
+
+class UnexpectedPositioningError extends Error {
+  @override
+  String toString() {
+    return 'Item offset requested before it was positioned';
   }
 }

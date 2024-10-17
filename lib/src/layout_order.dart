@@ -40,10 +40,21 @@ class ConstrainedLayoutOrder {
       }
 
       if (resolvedThisRun == 0) {
-        throw 'Unresolved edges $unresolvedEdges';
+        throw UnresolvedLayoutError(unresolvedEdges);
       }
     }
 
     return itemsInLayoutOrder;
+  }
+}
+
+class UnresolvedLayoutError extends Error {
+  UnresolvedLayoutError(this.unresolvedEdges);
+
+  final Map<ConstrainedItem, Set<Edge>> unresolvedEdges;
+
+  @override
+  String toString() {
+    return 'Unresolved edges $unresolvedEdges';
   }
 }
