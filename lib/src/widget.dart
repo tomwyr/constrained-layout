@@ -132,4 +132,17 @@ class ConstrainedItem<IdType> {
       child: child,
     );
   }
+
+  /// Returns a new instance of [ConstrainedItem] with the same [id] and layout
+  /// constraints, but with a different [child] widget.
+  ConstrainedItem<IdType> swapChild(Widget child) {
+    return ConstrainedItem(
+      id: id,
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
+      child: child,
+    );
+  }
 }

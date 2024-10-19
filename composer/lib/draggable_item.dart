@@ -9,6 +9,7 @@ class DraggableItem<IdType> extends StatefulWidget {
   const DraggableItem({
     super.key,
     required this.itemId,
+    required this.draggedEdge,
     required this.onLinkCandidate,
     required this.onLinkCancel,
     required this.onLinkConfirm,
@@ -20,6 +21,7 @@ class DraggableItem<IdType> extends StatefulWidget {
   static Color colorOf(ConstrainedItem item) => _colorForId(item.id);
 
   final IdType itemId;
+  final Edge? draggedEdge;
   final void Function(Edge edge) onLinkCandidate;
   final void Function() onLinkCancel;
   final void Function(Edge edge, LinkNode<IdType> node) onLinkConfirm;
@@ -61,8 +63,6 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
   }
 
   Widget itemHandle(Edge edge) {
-    final dot = DotHandle(edge: edge, size: 8);
-
     return Align(
       alignment: edge.toAlignment(),
       child: DragTarget<LinkNode<IdType>>(
@@ -82,6 +82,14 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
           }
         },
         builder: (context, candidateData, rejectedData) {
+          final enabled = widget.draggedEdge == null ||
+              edge.axis == widget.draggedEdge?.axis;
+          final dot = DotHandle(
+            enabled: enabled,
+            edge: edge,
+            size: 8,
+          );
+
           return Draggable<LinkNode<IdType>>(
             data: LinkNode(itemId: widget.itemId, edge: edge),
             onDragStarted: () {
@@ -109,12 +117,14 @@ class ParentItemTarget<IdType> extends StatelessWidget {
   const ParentItemTarget({
     super.key,
     required this.edge,
+    required this.draggedEdge,
     required this.onLinkCandidate,
     required this.onLinkCancel,
     required this.onLinkConfirm,
   });
 
   final Edge edge;
+  final Edge? draggedEdge;
   final void Function() onLinkCandidate;
   final void Function() onLinkCancel;
   final void Function(LinkNode<IdType> node) onLinkConfirm;
@@ -140,7 +150,12 @@ class ParentItemTarget<IdType> extends StatelessWidget {
           }
         },
         builder: (context, candidateData, rejectedData) {
-          return DotHandle(edge: edge, size: 12);
+          final enabled = draggedEdge == null || edge.axis == draggedEdge?.axis;
+          return DotHandle(
+            enabled: enabled,
+            edge: edge,
+            size: 12,
+          );
         },
       ),
     );
@@ -187,10 +202,12 @@ class ItemSquare extends StatelessWidget {
 class DotHandle extends StatelessWidget {
   const DotHandle({
     super.key,
+    required this.enabled,
     required this.edge,
     required this.size,
   });
 
+  final bool enabled;
   final Edge edge;
   final double size;
 
@@ -201,13 +218,13 @@ class DotHandle extends StatelessWidget {
       child: HoverRegion(
         builder: (hovered) => AnimatedScale(
           duration: const Duration(milliseconds: 100),
-          scale: hovered ? 1.5 : 1,
+          scale: enabled && hovered ? 1.5 : 1,
           child: Container(
             width: size,
             height: size,
             decoration: ShapeDecoration(
               shape: const CircleBorder(),
-              color: Colors.amber[700],
+              color: enabled ? Colors.amber[700] : Colors.grey,
             ),
           ),
         ),

@@ -29,8 +29,6 @@ class _ComposerState extends State<Composer> {
   ComposerDragData? dragData;
   LinkNode<int>? dragTarget;
 
-  bool get dragging => dragData != null;
-
   GlobalKey handleKeyFor(int itemId) {
     return handleKeys.putIfAbsent(itemId, () => GlobalKey());
   }
@@ -100,14 +98,14 @@ class _ComposerState extends State<Composer> {
         return Stack(
           children: [
             ...itemLinks,
-            if (dragging) ...[
-              dragLink(),
+            if (dragData case ComposerDragData(:var moved)) ...[
+              if (moved) dragLink(),
               parentHandles(),
             ],
             ConstrainedLayout(
               key: layoutKey,
               items: [
-                ...items,
+                ...items.map(itemWithChild),
                 if (linkPreviewData() case (var start, var end))
                   linkPreviewItem(start, end),
               ],
@@ -116,6 +114,48 @@ class _ComposerState extends State<Composer> {
         );
       },
     );
+  }
+
+  ConstrainedItem<int> itemWithChild(ConstrainedItem<int> item) {
+    final child = DraggableItem(
+      key: handleKeyFor(item.id),
+      itemId: item.id,
+      draggedEdge: dragData?.origin.edge,
+      onLinkCandidate: (edge) {
+        setDragTarget(LinkNode(itemId: item.id, edge: edge));
+      },
+      onLinkCancel: () {
+        setDragTarget(null);
+      },
+      onLinkConfirm: (edge, node) {
+        final linkTarget = LinkNode(itemId: item.id, edge: edge);
+        setDragTarget(null);
+        linkItem(node, linkTarget);
+      },
+      onDragStart: (edge) {
+        setState(() {
+          dragData = ComposerDragData(
+            origin: LinkNode(itemId: item.id, edge: edge),
+            delta: Offset.zero,
+          );
+        });
+      },
+      onDragUpdate: (edge, delta) {
+        setState(() {
+          dragData = ComposerDragData(
+            origin: LinkNode(itemId: item.id, edge: edge),
+            delta: dragData!.delta + delta,
+          );
+        });
+      },
+      onDragEnd: (edge) {
+        setState(() {
+          dragData = null;
+        });
+      },
+    );
+
+    return item.swapChild(child);
   }
 
   (LinkNode<int> origin, LinkNode<int> target)? linkPreviewData() {
@@ -229,19 +269,22 @@ class _ComposerState extends State<Composer> {
   }
 
   Widget parentHandle(Edge edge) {
+    final linkTarget = LinkNode<int>(itemId: null, edge: edge);
+
     return Align(
       alignment: edge.toAlignment(),
       child: ParentItemTarget<int>(
         edge: edge,
+        draggedEdge: dragData?.origin.edge,
         onLinkCandidate: () {
-          setDragTarget(LinkNode(itemId: null, edge: edge));
+          setDragTarget(linkTarget);
         },
         onLinkCancel: () {
           setDragTarget(null);
         },
         onLinkConfirm: (node) {
           setDragTarget(null);
-          linkItem(null, edge, node);
+          linkItem(node, linkTarget);
         },
       ),
     );
@@ -277,42 +320,6 @@ class _ComposerState extends State<Composer> {
   void addNewItem({bool linkToParent = false}) {
     final itemId = itemIdCounter++;
 
-    final child = DraggableItem(
-      key: handleKeyFor(itemId),
-      itemId: itemId,
-      onLinkCandidate: (edge) {
-        setDragTarget(LinkNode(itemId: itemId, edge: edge));
-      },
-      onLinkCancel: () {
-        setDragTarget(null);
-      },
-      onLinkConfirm: (edge, node) {
-        setDragTarget(null);
-        linkItem(itemId, edge, node);
-      },
-      onDragStart: (edge) {
-        setState(() {
-          dragData = ComposerDragData(
-            origin: LinkNode(itemId: itemId, edge: edge),
-            delta: Offset.zero,
-          );
-        });
-      },
-      onDragUpdate: (edge, delta) {
-        setState(() {
-          dragData = ComposerDragData(
-            origin: LinkNode(itemId: itemId, edge: edge),
-            delta: dragData!.delta + delta,
-          );
-        });
-      },
-      onDragEnd: (edge) {
-        setState(() {
-          dragData = null;
-        });
-      },
-    );
-
     final constraint = linkToParent ? LinkToParent() : null;
     final item = ConstrainedItem(
       id: itemId,
@@ -320,7 +327,7 @@ class _ComposerState extends State<Composer> {
       bottom: constraint,
       left: constraint,
       right: constraint,
-      child: child,
+      child: Container(),
     );
 
     setItems([...items, item]);
@@ -347,9 +354,14 @@ class _ComposerState extends State<Composer> {
     syncItemLinks();
   }
 
-  void setDragTarget(LinkNode<int>? value) {
+  void setDragTarget(LinkNode<int>? target) {
+    final origin = dragData?.origin;
+    if (target != null && origin != null && !origin.canLinkTo(target)) {
+      return;
+    }
+
     setState(() {
-      dragTarget = value;
+      dragTarget = target;
     });
   }
 
@@ -375,10 +387,17 @@ class _ComposerState extends State<Composer> {
     });
   }
 
-  void linkItem(int? itemId, Edge edge, LinkNode<int> node) {
-    final constraint =
-        itemId != null ? LinkTo(id: itemId, edge: edge) : LinkToParent();
-    final updatedItem = findItem(node).constrainedAlong(constraint, node.edge);
+  void linkItem(LinkNode<int> origin, LinkNode<int> target) {
+    if (!origin.canLinkTo(target)) {
+      return;
+    }
+
+    final constraint = switch (target) {
+      LinkNode(:var itemId?, :var edge) => LinkTo(id: itemId, edge: edge),
+      LinkNode(itemId: null) => LinkToParent(),
+    };
+    final updatedItem =
+        findItem(origin).constrainedAlong(constraint, origin.edge);
     replaceItem(updatedItem);
   }
 
@@ -417,6 +436,8 @@ class ComposerDragData {
 
   final LinkNode<int> origin;
   final Offset delta;
+
+  bool get moved => delta != Offset.zero;
 }
 
 extension on GlobalKey {
