@@ -34,7 +34,7 @@ class LinkPath extends CustomPaintWidget {
       ..strokeWidth = active ? 1.5 : 1
       ..style = PaintingStyle.stroke
       ..color = active ? Colors.black : Colors.grey;
-    canvas.drawPath(linkPath.dartPath, paint);
+    canvas.drawDashedPath(linkPath.dartPath, 4, paint);
   }
 
   void drawMarker(Canvas canvas, RecordedPath linkPath) {

@@ -87,7 +87,6 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
           final dot = DotHandle(
             enabled: enabled,
             edge: edge,
-            size: 8,
           );
 
           return Draggable<LinkNode<IdType>>(
@@ -154,7 +153,6 @@ class ParentItemTarget<IdType> extends StatelessWidget {
           return DotHandle(
             enabled: enabled,
             edge: edge,
-            size: 12,
           );
         },
       ),
@@ -204,7 +202,7 @@ class DotHandle extends StatelessWidget {
     super.key,
     required this.enabled,
     required this.edge,
-    required this.size,
+    this.size = 8,
   });
 
   final bool enabled;
