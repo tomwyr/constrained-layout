@@ -6,6 +6,7 @@ import 'draggable_item.dart';
 import 'link_path.dart';
 import 'utils/extensions.dart';
 import 'utils/widget_code.dart';
+import 'widgets/animation_builder.dart';
 
 class Composer extends StatefulWidget {
   const Composer({super.key});
@@ -232,13 +233,19 @@ class _ComposerState extends State<Composer> {
       LinkToParent() => true,
       LinkTo() => false,
     };
-    return LinkPath(
-      active: false,
-      fromOffset: fromOffset,
-      toOffset: toOffset,
-      fromEdge: edge,
-      toEdge: toEdge,
-      toParent: toParent,
+    return AnimationBuilder(
+      active: true,
+      looped: true,
+      duration: const Duration(milliseconds: 500),
+      listenableBuilder: (listenable) => LinkPath(
+        animation: listenable,
+        active: false,
+        fromOffset: fromOffset,
+        toOffset: toOffset,
+        fromEdge: edge,
+        toEdge: toEdge,
+        toParent: toParent,
+      ),
     );
   }
 

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 abstract class CustomPaintWidget extends StatelessWidget {
-  const CustomPaintWidget({super.key});
+  const CustomPaintWidget({super.key, this.repaint});
+
+  final Listenable? repaint;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _CustomPaintPainter(this),
+      painter: _CustomPaintPainter(this, repaint: repaint),
     );
   }
 
@@ -16,7 +18,7 @@ abstract class CustomPaintWidget extends StatelessWidget {
 }
 
 class _CustomPaintPainter extends CustomPainter {
-  _CustomPaintPainter(this.widget);
+  _CustomPaintPainter(this.widget, {super.repaint});
 
   final CustomPaintWidget widget;
 

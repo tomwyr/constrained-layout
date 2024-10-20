@@ -22,14 +22,23 @@ extension OffsetExtensions on Offset {
 }
 
 extension CanvasExtensions on Canvas {
-  void drawDashedPath(Path path, double dashLength, Paint paint) {
+  void drawDashedPath(
+    Path path,
+    double dashLength,
+    double dashShift,
+    Paint paint,
+  ) {
     for (var metric in path.computeMetrics()) {
-      var segments = metric.length ~/ dashLength;
-      for (var i = 0; i < segments; i++) {
-        if (i % 2 == 1) continue;
-        final start = dashLength * i;
-        final dashPath = metric.extractPath(start, start + dashLength);
-        drawPath(dashPath, paint);
+      if (dashShift >= 0.5 && dashShift < 1) {
+        final firstDash = metric.extractPath(0, dashLength * dashShift);
+        drawPath(firstDash, paint);
+      }
+      var totalLength = dashShift * 2 * dashLength;
+      while (totalLength < metric.length) {
+        final nextDash =
+            metric.extractPath(totalLength, totalLength + dashLength);
+        drawPath(nextDash, paint);
+        totalLength += 2 * dashLength;
       }
     }
   }

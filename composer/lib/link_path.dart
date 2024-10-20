@@ -1,4 +1,5 @@
 import 'package:constrained_layout/constrained_layout.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'utils/extensions.dart';
@@ -7,20 +8,24 @@ import 'widgets/custom_painter_widget.dart';
 class LinkPath extends CustomPaintWidget {
   const LinkPath({
     super.key,
+    this.animation,
     required this.active,
     required this.fromOffset,
     required this.toOffset,
     required this.fromEdge,
     required this.toEdge,
     required this.toParent,
-  });
+  }) : super(repaint: animation);
 
+  final ValueListenable<double>? animation;
   final bool active;
   final Offset fromOffset;
   final Offset toOffset;
   final Edge fromEdge;
   final Edge? toEdge;
   final bool toParent;
+
+  double get time => animation?.value ?? 0;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -34,7 +39,7 @@ class LinkPath extends CustomPaintWidget {
       ..strokeWidth = active ? 1.5 : 1
       ..style = PaintingStyle.stroke
       ..color = active ? Colors.black : Colors.grey;
-    canvas.drawDashedPath(linkPath.dartPath, 4, paint);
+    canvas.drawDashedPath(linkPath.dartPath, 4, time, paint);
   }
 
   void drawMarker(Canvas canvas, RecordedPath linkPath) {
