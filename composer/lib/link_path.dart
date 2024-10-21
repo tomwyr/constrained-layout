@@ -9,7 +9,7 @@ class LinkPath extends CustomPaintWidget {
   const LinkPath({
     super.key,
     this.animation,
-    required this.active,
+    required this.type,
     required this.fromOffset,
     required this.toOffset,
     required this.fromEdge,
@@ -18,7 +18,7 @@ class LinkPath extends CustomPaintWidget {
   }) : super(repaint: animation);
 
   final ValueListenable<double>? animation;
-  final bool active;
+  final LinkPathStyle type;
   final Offset fromOffset;
   final Offset toOffset;
   final Edge fromEdge;
@@ -36,9 +36,9 @@ class LinkPath extends CustomPaintWidget {
 
   void drawLinkPath(Canvas canvas, RecordedPath linkPath) {
     final paint = Paint()
-      ..strokeWidth = active ? 1.5 : 1
+      ..strokeWidth = type.strokeWidth
       ..style = PaintingStyle.stroke
-      ..color = active ? Colors.black : Colors.grey;
+      ..color = type.color;
     canvas.drawDashedPath(linkPath.dartPath, 4, time, paint);
   }
 
@@ -46,7 +46,7 @@ class LinkPath extends CustomPaintWidget {
     final LineSegment(:start, :end, :direction) = linkPath.segments.last;
     final (base, height) = (8.0, 8.0);
     final offset = end.shiftedBy(base, towards: start);
-    final paint = Paint()..color = active ? Colors.black : Colors.grey;
+    final paint = Paint()..color = type.color;
     canvas.drawTriangle(offset, base, height, direction, paint);
   }
 
@@ -173,7 +173,7 @@ class LinkPath extends CustomPaintWidget {
 
   @override
   bool shouldRepaint(LinkPath oldWidget) {
-    return oldWidget.active != active ||
+    return oldWidget.type != type ||
         oldWidget.fromOffset != fromOffset ||
         oldWidget.toOffset != toOffset ||
         oldWidget.fromEdge != fromEdge ||
@@ -182,13 +182,25 @@ class LinkPath extends CustomPaintWidget {
   }
 }
 
-class LineSegment {
-  LineSegment(this.start, this.end);
+enum LinkPathStyle {
+  bold,
+  normal,
+  light;
 
-  final Offset start;
-  final Offset end;
+  double get strokeWidth {
+    return switch (this) {
+      LinkPathStyle.bold => 1.5,
+      LinkPathStyle.normal || LinkPathStyle.light => 1,
+    };
+  }
 
-  double get direction => (end - start).direction;
+  Color get color {
+    return switch (this) {
+      LinkPathStyle.bold => Colors.black,
+      LinkPathStyle.normal => Colors.grey[700]!,
+      LinkPathStyle.light => Colors.grey[400]!,
+    };
+  }
 }
 
 class RecordedPath {
@@ -212,4 +224,13 @@ class RecordedPath {
     _path.relativeLineTo(x, y);
     _position = end;
   }
+}
+
+class LineSegment {
+  LineSegment(this.start, this.end);
+
+  final Offset start;
+  final Offset end;
+
+  double get direction => (end - start).direction;
 }

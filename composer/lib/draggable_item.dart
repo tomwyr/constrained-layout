@@ -16,6 +16,7 @@ class DraggableItem<IdType> extends StatefulWidget {
     required this.onDragStart,
     required this.onDragUpdate,
     required this.onDragEnd,
+    required this.onHover,
   });
 
   static Color colorOf(ConstrainedItem item) => _colorForId(item.id);
@@ -28,6 +29,7 @@ class DraggableItem<IdType> extends StatefulWidget {
   final void Function(Edge edge) onDragStart;
   final void Function(Edge edge, Offset delta) onDragUpdate;
   final void Function(Edge edge) onDragEnd;
+  final void Function(bool hovered) onHover;
 
   @override
   State<DraggableItem<IdType>> createState() => _DraggableItemState();
@@ -44,6 +46,7 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
     return HoverRegion.listener(
       onChange: (value) {
         setState(() => hovered = value);
+        widget.onHover(value);
       },
       child: ItemSquare(
         color: _colorForId(widget.itemId),

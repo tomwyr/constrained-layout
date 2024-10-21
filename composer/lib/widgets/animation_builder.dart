@@ -10,7 +10,7 @@ class AnimationBuilder extends StatefulWidget {
   const AnimationBuilder({
     super.key,
     this.active = true,
-    this.looped = false,
+    this.looped = true,
     required this.duration,
     this.valueBuilder,
     this.listenableBuilder,

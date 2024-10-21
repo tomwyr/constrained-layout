@@ -23,7 +23,9 @@ class _ComposerState extends State<Composer> {
 
   var itemIdCounter = 0;
   var items = <ConstrainedItem<int>>[];
+  var hoveredItems = <int>{};
   var itemLinks = <Widget>[];
+  var showAllLinks = true;
   var showCode = true;
 
   BoxConstraints? lastConstraints;
@@ -86,6 +88,7 @@ class _ComposerState extends State<Composer> {
       children: [
         addItemButton(),
         clearItemsButton(),
+        toggleLinksButton(),
         toggleCodeButton(),
       ],
     );
@@ -103,17 +106,21 @@ class _ComposerState extends State<Composer> {
               if (moved) dragLink(),
               parentHandles(),
             ],
-            ConstrainedLayout(
-              key: layoutKey,
-              items: [
-                ...items.map(itemWithChild),
-                if (linkPreviewData() case (var start, var end))
-                  linkPreviewItem(start, end),
-              ],
-            ),
+            constrainedLayout(),
           ],
         );
       },
+    );
+  }
+
+  Widget constrainedLayout() {
+    return ConstrainedLayout(
+      key: layoutKey,
+      items: [
+        ...items.map(itemWithChild),
+        if (linkPreviewData() case (var start, var end))
+          linkPreviewItem(start, end),
+      ],
     );
   }
 
@@ -140,6 +147,7 @@ class _ComposerState extends State<Composer> {
             delta: Offset.zero,
           );
         });
+        syncItemLinks();
       },
       onDragUpdate: (edge, delta) {
         setState(() {
@@ -153,6 +161,11 @@ class _ComposerState extends State<Composer> {
         setState(() {
           dragData = null;
         });
+        syncItemLinks();
+      },
+      onHover: (hovered) {
+        hovered ? hoveredItems.add(item.id) : hoveredItems.remove(item.id);
+        syncItemLinks();
       },
     );
 
@@ -209,13 +222,19 @@ class _ComposerState extends State<Composer> {
       LinkNode(itemId: null) => true,
       _ => false,
     };
-    return LinkPath(
-      active: true,
-      fromOffset: fromOffset,
-      toOffset: toOffset,
-      fromEdge: edge,
-      toEdge: dragTarget?.edge,
-      toParent: toParent,
+
+    return AnimationBuilder(
+      active: dragTarget != null,
+      duration: const Duration(seconds: 1),
+      listenableBuilder: (listenable) => LinkPath(
+        animation: listenable,
+        type: LinkPathStyle.bold,
+        fromOffset: fromOffset,
+        toOffset: toOffset,
+        fromEdge: edge,
+        toEdge: dragTarget?.edge,
+        toParent: toParent,
+      ),
     );
   }
 
@@ -233,13 +252,15 @@ class _ComposerState extends State<Composer> {
       LinkToParent() => true,
       LinkTo() => false,
     };
+
+    final active = dragData == null && hoveredItems.contains(itemId);
+
     return AnimationBuilder(
-      active: true,
-      looped: true,
-      duration: const Duration(milliseconds: 500),
+      active: active,
+      duration: const Duration(seconds: 1),
       listenableBuilder: (listenable) => LinkPath(
         animation: listenable,
-        active: false,
+        type: active ? LinkPathStyle.normal : LinkPathStyle.light,
         fromOffset: fromOffset,
         toOffset: toOffset,
         fromEdge: edge,
@@ -252,14 +273,6 @@ class _ComposerState extends State<Composer> {
   Offset positionOfEdge(int? itemId, Edge edge) {
     final edgeLayoutKey = itemId != null ? handleKeyFor(itemId) : layoutKey;
     return edgeLayoutKey.centerOfEdge(edge) - layoutKey.origin;
-  }
-
-  RenderBox constrainedLayoutBox() {
-    final layoutBox = layoutKey.currentContext?.findRenderObject();
-    if (layoutBox is! RenderBox) {
-      throw 'Unable to access layout position';
-    }
-    return layoutBox;
   }
 
   Widget parentHandles() {
@@ -309,6 +322,18 @@ class _ComposerState extends State<Composer> {
       icon: Icons.delete,
       onClick: () {
         setItems([]);
+      },
+    );
+  }
+
+  Widget toggleLinksButton() {
+    return ComposerActionButton(
+      icon: Icons.link,
+      onClick: () {
+        setState(() {
+          showAllLinks = !showAllLinks;
+        });
+        syncItemLinks();
       },
     );
   }
@@ -382,8 +407,16 @@ class _ComposerState extends State<Composer> {
 
   void syncItemLinks() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
+      final activeItems = items.where((item) {
+        return showAllLinks ||
+            dragData?.origin.itemId == item.id ||
+            hoveredItems.contains(item.id);
+      }).sortedBy((item1, item2) {
+        return hoveredItems.contains(item1.id) ? 1 : -1;
+      });
+
       final itemLinks = [
-        for (var item in items)
+        for (var item in activeItems)
           for (var (edge, constraint) in item.constraints.records)
             if (constraint != null) itemLink(item.id, edge, constraint),
       ];
@@ -445,30 +478,4 @@ class ComposerDragData {
   final Offset delta;
 
   bool get moved => delta != Offset.zero;
-}
-
-extension on GlobalKey {
-  Offset get origin {
-    return requireRenderBox().localToGlobal(Offset.zero);
-  }
-
-  Offset centerOfEdge(Edge edge) {
-    final box = requireRenderBox();
-    final Size(:width, :height) = box.size;
-    final localCenter = switch (edge) {
-      Edge.top => Offset(width / 2, 0),
-      Edge.bottom => Offset(width / 2, height),
-      Edge.left => Offset(0, height / 2),
-      Edge.right => Offset(width, height / 2),
-    };
-    return box.localToGlobal(localCenter);
-  }
-
-  RenderBox requireRenderBox() {
-    final box = currentContext?.findRenderObject();
-    if (box is! RenderBox) {
-      throw 'Unable to access widget\'s render object';
-    }
-    return box;
-  }
 }
