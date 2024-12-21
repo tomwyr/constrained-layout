@@ -163,6 +163,10 @@ class _ComposerState extends State<Composer> {
         });
         syncItemLinks();
       },
+      onUnlink: (edge) {
+        final updatedItem = item.constrainedAlong(null, edge);
+        replaceItem(updatedItem);
+      },
       onHover: (hovered) {
         hovered ? hoveredItems.add(item.id) : hoveredItems.remove(item.id);
         syncItemLinks();
@@ -193,7 +197,7 @@ class _ComposerState extends State<Composer> {
     final item = ConstrainedItem(
       id: _previewItemId,
       child: ItemSquare(
-        color: DraggableItem.colorOf(originItem).withOpacity(0.25),
+        color: DraggableItem.colorOf(originItem).withValues(alpha: 0.25),
       ),
     );
 

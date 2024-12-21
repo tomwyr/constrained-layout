@@ -16,6 +16,7 @@ class DraggableItem<IdType> extends StatefulWidget {
     required this.onDragStart,
     required this.onDragUpdate,
     required this.onDragEnd,
+    required this.onUnlink,
     required this.onHover,
   });
 
@@ -29,6 +30,7 @@ class DraggableItem<IdType> extends StatefulWidget {
   final void Function(Edge edge) onDragStart;
   final void Function(Edge edge, Offset delta) onDragUpdate;
   final void Function(Edge edge) onDragEnd;
+  final void Function(Edge edge) onUnlink;
   final void Function(bool hovered) onHover;
 
   @override
@@ -90,6 +92,7 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
           final dot = DotHandle(
             enabled: enabled,
             edge: edge,
+            onTap: () => widget.onUnlink(edge),
           );
 
           return Draggable<LinkNode<IdType>>(
@@ -206,11 +209,13 @@ class DotHandle extends StatelessWidget {
     required this.enabled,
     required this.edge,
     this.size = 8,
+    this.onTap,
   });
 
   final bool enabled;
   final Edge edge;
   final double size;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -220,12 +225,15 @@ class DotHandle extends StatelessWidget {
         builder: (hovered) => AnimatedScale(
           duration: const Duration(milliseconds: 100),
           scale: enabled && hovered ? 1.5 : 1,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: ShapeDecoration(
-              shape: const CircleBorder(),
-              color: enabled ? Colors.amber[700] : Colors.grey,
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: size,
+              height: size,
+              decoration: ShapeDecoration(
+                shape: const CircleBorder(),
+                color: enabled ? Colors.amber[700] : Colors.grey,
+              ),
             ),
           ),
         ),
