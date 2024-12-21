@@ -130,7 +130,7 @@ class _ComposerState extends State<Composer> {
     final child = DraggableItem(
       key: handleKeyFor(item.id),
       itemId: item.id,
-      draggedEdge: dragData?.origin.edge,
+      draggedNode: dragData?.origin,
       onLinkCandidate: (edge) {
         setDragTarget(LinkNode(itemId: item.id, edge: edge));
       },

@@ -9,7 +9,7 @@ class DraggableItem<IdType> extends StatefulWidget {
   const DraggableItem({
     super.key,
     required this.itemId,
-    required this.draggedEdge,
+    required this.draggedNode,
     required this.onLinkCandidate,
     required this.onLinkCancel,
     required this.onLinkConfirm,
@@ -23,7 +23,7 @@ class DraggableItem<IdType> extends StatefulWidget {
   static Color colorOf(ConstrainedItem item) => _colorForId(item.id);
 
   final IdType itemId;
-  final Edge? draggedEdge;
+  final LinkNode<int>? draggedNode;
   final void Function(Edge edge) onLinkCandidate;
   final void Function() onLinkCancel;
   final void Function(Edge edge, LinkNode<IdType> node) onLinkConfirm;
@@ -87,10 +87,8 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
           }
         },
         builder: (context, candidateData, rejectedData) {
-          final enabled = widget.draggedEdge == null ||
-              edge.axis == widget.draggedEdge?.axis;
           final dot = DotHandle(
-            enabled: enabled,
+            enabled: itemEdgeEnabled(edge),
             edge: edge,
             onTap: () => widget.onUnlink(edge),
           );
@@ -115,6 +113,17 @@ class _DraggableItemState<IdType> extends State<DraggableItem<IdType>> {
         },
       ),
     );
+  }
+
+  bool itemEdgeEnabled(Edge edge) {
+    final origin = widget.draggedNode;
+    if (origin == null) {
+      return true;
+    } else if (origin.itemId == widget.itemId) {
+      return origin.edge == edge;
+    } else {
+      return origin.edge.axis == edge.axis;
+    }
   }
 }
 
