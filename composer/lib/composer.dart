@@ -1,12 +1,14 @@
 import 'package:constrained_layout/constrained_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import 'draggable_item.dart';
 import 'link_path.dart';
 import 'utils/extensions.dart';
 import 'utils/widget_code.dart';
 import 'widgets/animation_builder.dart';
+import 'widgets/hover_builder.dart';
 
 class Composer extends StatefulWidget {
   const Composer({super.key});
@@ -207,10 +209,41 @@ class _ComposerState extends State<Composer> {
   }
 
   Widget layoutCode() {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: SelectableText(
-        ConstrainedLayout(items: items).widgetCode,
+    final widgetCode = ConstrainedLayout(items: items).widgetCode;
+
+    return HoverRegion(
+      builder: (hovered) => Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: SelectableText(widgetCode),
+          ),
+          if (hovered)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(2),
+                child: copyCodeButton(widgetCode),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget copyCodeButton(String widgetCode) {
+    return Tooltip(
+      message: 'Copy',
+      preferBelow: false,
+      child: HoverRegion(
+        builder: (hovered) => IconButton(
+          icon: const Icon(Icons.copy),
+          color: !hovered ? Colors.grey : null,
+          onPressed: () {
+            Clipboard.setData(ClipboardData(text: widgetCode));
+          },
+        ),
       ),
     );
   }
