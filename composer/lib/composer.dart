@@ -129,13 +129,17 @@ class _ComposerState extends State<Composer> {
   }
 
   ConstrainedItem<int> itemWithChild(ConstrainedItem<int> item) {
-    final child = DraggableItem(
+    final previewed = dragData?.origin.itemId == item.id && dragTarget != null;
+    final child = HoverRegion.listener(
       key: handleKeyFor(item.id),
-      itemId: item.id,
-      onHover: (hovered) {
+      onChange: (hovered) {
         hoverTracker.setItemHovered(item.id, hovered);
         syncItemOverlays();
       },
+      child: ItemSquare(
+        item: item,
+        opacity: previewed ? 0.5 : 1,
+      ),
     );
 
     return item.swapChild(child);
@@ -162,7 +166,7 @@ class _ComposerState extends State<Composer> {
     final item = ConstrainedItem(
       id: _previewItemId,
       child: ItemSquare(
-        color: DraggableItem.colorOf(originItem).withValues(alpha: 0.25),
+        item: originItem,
       ),
     );
 

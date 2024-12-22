@@ -5,29 +5,6 @@ import 'package:flutter/material.dart';
 
 import 'widgets/hover_region.dart';
 
-class DraggableItem<IdType> extends StatelessWidget {
-  const DraggableItem({
-    super.key,
-    required this.itemId,
-    required this.onHover,
-  });
-
-  static Color colorOf(ConstrainedItem item) => _colorForId(item.id);
-
-  final IdType itemId;
-  final void Function(bool hovered) onHover;
-
-  @override
-  Widget build(BuildContext context) {
-    return HoverRegion.listener(
-      onChange: onHover,
-      child: ItemSquare(
-        color: _colorForId(itemId),
-      ),
-    );
-  }
-}
-
 class DraggableItemHandle<IdType> extends StatelessWidget {
   const DraggableItemHandle({
     super.key,
@@ -180,11 +157,13 @@ class ParentItemTarget<IdType> extends StatelessWidget {
 class ItemSquare extends StatelessWidget {
   const ItemSquare({
     super.key,
-    required this.color,
+    required this.item,
+    this.opacity = 1,
     this.child,
   });
 
-  final Color color;
+  final ConstrainedItem item;
+  final double opacity;
   final Widget? child;
 
   @override
@@ -197,7 +176,7 @@ class ItemSquare extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4),
           ),
-          color: color,
+          color: _colorForId(item.id).withValues(alpha: opacity),
         ),
         child: child,
       ),
