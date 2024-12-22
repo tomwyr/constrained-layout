@@ -1,14 +1,14 @@
 import 'package:constrained_layout/constrained_layout.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import 'draggable_item.dart';
 import 'link_path.dart';
 import 'utils/extensions.dart';
+import 'utils/functions.dart';
 import 'utils/widget_code.dart';
 import 'widgets/animation_builder.dart';
-import 'widgets/hover_builder.dart';
+import 'widgets/hover_region.dart';
 
 class Composer extends StatefulWidget {
   const Composer({super.key});
@@ -25,8 +25,9 @@ class _ComposerState extends State<Composer> {
 
   var itemIdCounter = 0;
   var items = <ConstrainedItem<int>>[];
-  var hoveredItems = <int>{};
+  var hoverTracker = HoverTracker();
   var itemLinks = <Widget>[];
+  var itemHandles = <Widget>[];
   var showAllLinks = true;
   var showCode = true;
 
@@ -109,6 +110,7 @@ class _ComposerState extends State<Composer> {
               parentHandles(),
             ],
             constrainedLayout(),
+            ...itemHandles,
           ],
         );
       },
@@ -130,48 +132,9 @@ class _ComposerState extends State<Composer> {
     final child = DraggableItem(
       key: handleKeyFor(item.id),
       itemId: item.id,
-      draggedNode: dragData?.origin,
-      onLinkCandidate: (edge) {
-        setDragTarget(LinkNode(itemId: item.id, edge: edge));
-      },
-      onLinkCancel: () {
-        setDragTarget(null);
-      },
-      onLinkConfirm: (edge, node) {
-        final linkTarget = LinkNode(itemId: item.id, edge: edge);
-        setDragTarget(null);
-        linkItem(node, linkTarget);
-      },
-      onDragStart: (edge) {
-        setState(() {
-          dragData = ComposerDragData(
-            origin: LinkNode(itemId: item.id, edge: edge),
-            delta: Offset.zero,
-          );
-        });
-        syncItemLinks();
-      },
-      onDragUpdate: (edge, delta) {
-        setState(() {
-          dragData = ComposerDragData(
-            origin: LinkNode(itemId: item.id, edge: edge),
-            delta: dragData!.delta + delta,
-          );
-        });
-      },
-      onDragEnd: (edge) {
-        setState(() {
-          dragData = null;
-        });
-        syncItemLinks();
-      },
-      onUnlink: (edge) {
-        final updatedItem = item.constrainedAlong(null, edge);
-        replaceItem(updatedItem);
-      },
       onHover: (hovered) {
-        hovered ? hoveredItems.add(item.id) : hoveredItems.remove(item.id);
-        syncItemLinks();
+        hoverTracker.setItemHovered(item.id, hovered);
+        syncItemOverlays();
       },
     );
 
@@ -290,7 +253,7 @@ class _ComposerState extends State<Composer> {
       LinkTo() => false,
     };
 
-    final active = dragData == null && hoveredItems.contains(itemId);
+    final active = dragData == null && hoverTracker.isHovered(itemId);
 
     return AnimationBuilder(
       active: active,
@@ -303,6 +266,62 @@ class _ComposerState extends State<Composer> {
         fromEdge: edge,
         toEdge: toEdge,
         toParent: toParent,
+      ),
+    );
+  }
+
+  Widget itemHandle(ConstrainedItem<int> item, Edge edge) {
+    final position = positionOfEdge(item.id, edge);
+
+    return Positioned(
+      left: position.dx,
+      top: position.dy,
+      child: DraggableItemHandle(
+        edge: edge,
+        itemId: item.id,
+        draggedNode: dragData?.origin,
+        onLinkCandidate: (edge) {
+          setDragTarget(LinkNode(itemId: item.id, edge: edge));
+        },
+        onLinkCancel: () {
+          setDragTarget(null);
+        },
+        onLinkConfirm: (edge, node) {
+          final linkTarget = LinkNode(itemId: item.id, edge: edge);
+          setDragTarget(null);
+          linkItem(node, linkTarget);
+        },
+        onDragStart: (edge) {
+          setState(() {
+            dragData = ComposerDragData(
+              origin: LinkNode(itemId: item.id, edge: edge),
+              delta: Offset.zero,
+            );
+          });
+          syncItemOverlays();
+        },
+        onDragUpdate: (edge, delta) {
+          setState(() {
+            dragData = ComposerDragData(
+              origin: LinkNode(itemId: item.id, edge: edge),
+              delta: dragData!.delta + delta,
+            );
+          });
+        },
+        onDragEnd: (edge) {
+          setState(() {
+            dragData = null;
+          });
+          syncItemOverlays();
+        },
+        onUnlink: (edge) {
+          final updatedItem = item.constrainedAlong(null, edge);
+          replaceItem(updatedItem);
+        },
+        onHover: (hovered) {
+          hoverTracker.setEdgeHovered(item.id, edge, hovered);
+          syncItemOverlays();
+        },
       ),
     );
   }
@@ -328,22 +347,19 @@ class _ComposerState extends State<Composer> {
   Widget parentHandle(Edge edge) {
     final linkTarget = LinkNode<int>(itemId: null, edge: edge);
 
-    return Align(
-      alignment: edge.toAlignment(),
-      child: ParentItemTarget<int>(
-        edge: edge,
-        draggedEdge: dragData?.origin.edge,
-        onLinkCandidate: () {
-          setDragTarget(linkTarget);
-        },
-        onLinkCancel: () {
-          setDragTarget(null);
-        },
-        onLinkConfirm: (node) {
-          setDragTarget(null);
-          linkItem(node, linkTarget);
-        },
-      ),
+    return ParentItemTarget<int>(
+      edge: edge,
+      draggedEdge: dragData?.origin.edge,
+      onLinkCandidate: () {
+        setDragTarget(linkTarget);
+      },
+      onLinkCancel: () {
+        setDragTarget(null);
+      },
+      onLinkConfirm: (node) {
+        setDragTarget(null);
+        linkItem(node, linkTarget);
+      },
     );
   }
 
@@ -370,7 +386,7 @@ class _ComposerState extends State<Composer> {
         setState(() {
           showAllLinks = !showAllLinks;
         });
-        syncItemLinks();
+        syncItemOverlays();
       },
     );
   }
@@ -420,7 +436,7 @@ class _ComposerState extends State<Composer> {
     setState(() {
       this.items = items;
     });
-    syncItemLinks();
+    runPostFrame(syncItemOverlays);
   }
 
   void setDragTarget(LinkNode<int>? target) {
@@ -437,30 +453,38 @@ class _ComposerState extends State<Composer> {
   void syncLayout(BoxConstraints constraints) {
     if (lastConstraints != null && lastConstraints != constraints) {
       lastConstraints = constraints;
-      syncItemLinks();
+      runPostFrame(syncItemOverlays);
     }
     lastConstraints = constraints;
   }
 
-  void syncItemLinks() {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      final activeItems = items.where((item) {
-        return showAllLinks ||
-            dragData?.origin.itemId == item.id ||
-            hoveredItems.contains(item.id);
-      }).sortedBy((item1, item2) {
-        return hoveredItems.contains(item1.id) ? 1 : -1;
-      });
+  void syncItemOverlays() async {
+    final activeLinkItems = items.where((item) {
+      return showAllLinks ||
+          dragData?.origin.itemId == item.id ||
+          hoverTracker.isHovered(item.id);
+    }).sortedBy((item1, item2) {
+      return hoverTracker.isHovered(item1.id) ? 1 : -1;
+    });
 
-      final itemLinks = [
-        for (var item in activeItems)
-          for (var (edge, constraint) in item.constraints.records)
-            if (constraint != null) itemLink(item.id, edge, constraint),
-      ];
+    final itemLinks = [
+      for (var item in activeLinkItems)
+        for (var (edge, constraint) in item.constraints.records)
+          if (constraint != null) itemLink(item.id, edge, constraint),
+    ];
 
-      setState(() {
-        this.itemLinks = itemLinks;
-      });
+    final activeHandleItems = items.where((item) {
+      return dragData != null || hoverTracker.isHovered(item.id);
+    });
+
+    final itemHandles = [
+      for (var item in activeHandleItems)
+        for (var edge in Edge.values) itemHandle(item, edge),
+    ];
+
+    setState(() {
+      this.itemLinks = itemLinks;
+      this.itemHandles = itemHandles;
     });
   }
 
@@ -515,4 +539,25 @@ class ComposerDragData {
   final Offset delta;
 
   bool get moved => delta != Offset.zero;
+}
+
+class HoverTracker<IdType> {
+  final Map<IdType, Set<Edge>> _edges = {};
+  final Set<IdType> _items = {};
+
+  void setItemHovered(IdType itemId, bool hovered) {
+    hovered ? _items.add(itemId) : _items.remove(itemId);
+  }
+
+  void setEdgeHovered(IdType itemId, Edge edge, bool hovered) {
+    hovered ? _edgesOf(itemId).add(edge) : _edgesOf(itemId).remove(edge);
+  }
+
+  bool isHovered(IdType itemId) {
+    return _items.contains(itemId) || _edgesOf(itemId).isNotEmpty;
+  }
+
+  Set<Edge> _edgesOf(IdType itemId) {
+    return _edges.putIfAbsent(itemId, () => {});
+  }
 }
