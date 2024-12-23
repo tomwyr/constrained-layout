@@ -105,12 +105,14 @@ class _ComposerState extends State<Composer> {
         return Stack(
           children: [
             ...itemLinks,
-            if (dragData case ComposerDragData(:var moved)) ...[
-              if (moved) dragLink(),
+            if (dragData != null && dragTarget != null) ...itemPreviewLinks(),
+            if (dragData != null) ...[
+              if (dragData!.moved && dragTarget == null) dragLink(),
               parentHandles(),
             ],
             constrainedLayout(),
             ...itemHandles,
+            if (dragData != null && dragTarget != null) ...itemPreviewHandles(),
           ],
         );
       },
@@ -166,6 +168,7 @@ class _ComposerState extends State<Composer> {
     final item = ConstrainedItem(
       id: _previewItemId,
       child: ItemSquare(
+        key: handleKeyFor(_previewItemId),
         item: originItem,
       ),
     );
@@ -242,7 +245,54 @@ class _ComposerState extends State<Composer> {
     );
   }
 
-  Widget itemLink(int itemId, Edge edge, Constraint constraint) {
+  List<Widget> itemPreviewHandles() {
+    final pendingPreview = handleKeyFor(_previewItemId).currentContext == null;
+    if (pendingPreview) {
+      return [];
+    }
+
+    return [
+      for (var edge in Edge.values)
+        Positioned(
+          key: ValueKey((_previewItemId, edge)),
+          left: positionOfEdge(_previewItemId, edge).dx,
+          top: positionOfEdge(_previewItemId, edge).dy,
+          child: FractionalTranslation(
+            translation: const Offset(-0.5, -0.5),
+            child: Dot(
+              enabled: dragData!.origin.edge == edge,
+            ),
+          ),
+        ),
+    ];
+  }
+
+  List<Widget> itemPreviewLinks() {
+    final pendingPreview = handleKeyFor(_previewItemId).currentContext == null;
+    if (pendingPreview) {
+      return [];
+    }
+
+    final linkedItem = linkItem(dragData!.origin, dragTarget!);
+
+    return [
+      for (var (edge, constraint) in linkedItem.constraints.records)
+        if (constraint != null)
+          itemLink(
+            _previewItemId,
+            edge,
+            constraint,
+            overrideActive: edge == dragData!.origin.edge,
+          ),
+    ];
+  }
+
+  Widget itemLink(
+    int itemId,
+    Edge edge,
+    Constraint constraint, {
+    bool? overrideActive,
+  }) {
     final fromOffset = positionOfEdge(itemId, edge);
     final toOffset = switch (constraint) {
       LinkToParent() => positionOfEdge(null, edge),
@@ -257,7 +307,8 @@ class _ComposerState extends State<Composer> {
       LinkTo() => false,
     };
 
-    final active = dragData == null && hoverTracker.isHovered(itemId);
+    final active =
+        overrideActive ?? dragData == null && hoverTracker.isHovered(itemId);
 
     return AnimationBuilder(
       active: active,
@@ -276,14 +327,17 @@ class _ComposerState extends State<Composer> {
 
   Widget itemHandle(ConstrainedItem<int> item, Edge edge) {
     final position = positionOfEdge(item.id, edge);
+    final visible = dragTarget == null || item.id != dragData?.origin.itemId;
 
     return Positioned(
+      key: ValueKey((item.id, edge)),
       left: position.dx,
       top: position.dy,
       child: DraggableItemHandle(
         edge: edge,
         itemId: item.id,
         draggedNode: dragData?.origin,
+        visible: visible,
         onLinkCandidate: (edge) {
           setDragTarget(LinkNode(itemId: item.id, edge: edge));
         },
@@ -293,7 +347,7 @@ class _ComposerState extends State<Composer> {
         onLinkConfirm: (edge, node) {
           final linkTarget = LinkNode(itemId: item.id, edge: edge);
           setDragTarget(null);
-          linkItem(node, linkTarget);
+          linkItemAndReplace(node, linkTarget);
         },
         onDragStart: (edge) {
           setState(() {
@@ -362,7 +416,7 @@ class _ComposerState extends State<Composer> {
       },
       onLinkConfirm: (node) {
         setDragTarget(null);
-        linkItem(node, linkTarget);
+        linkItemAndReplace(node, linkTarget);
       },
     );
   }
@@ -452,6 +506,8 @@ class _ComposerState extends State<Composer> {
     setState(() {
       dragTarget = target;
     });
+
+    runPostFrame(syncItemOverlays);
   }
 
   void syncLayout(BoxConstraints constraints) {
@@ -464,6 +520,10 @@ class _ComposerState extends State<Composer> {
 
   void syncItemOverlays() async {
     final activeLinkItems = items.where((item) {
+      if (dragTarget != null && dragData!.origin.itemId == item.id) {
+        return false;
+      }
+
       return showAllLinks ||
           dragData?.origin.itemId == item.id ||
           hoverTracker.isHovered(item.id);
@@ -492,18 +552,20 @@ class _ComposerState extends State<Composer> {
     });
   }
 
-  void linkItem(LinkNode<int> origin, LinkNode<int> target) {
-    if (!origin.canLinkTo(target)) {
-      return;
-    }
-
+  ConstrainedItem<int> linkItem(LinkNode<int> origin, LinkNode<int> target) {
     final constraint = switch (target) {
       LinkNode(:var itemId?, :var edge) => LinkTo(id: itemId, edge: edge),
       LinkNode(itemId: null) => LinkToParent(),
     };
-    final updatedItem =
-        findItem(origin).constrainedAlong(constraint, origin.edge);
-    replaceItem(updatedItem);
+
+    return findItem(origin).constrainedAlong(constraint, origin.edge);
+  }
+
+  void linkItemAndReplace(LinkNode<int> origin, LinkNode<int> target) {
+    if (!origin.canLinkTo(target)) {
+      return;
+    }
+    replaceItem(linkItem(origin, target));
   }
 
   ConstrainedItem<int> findItem(LinkNode<int> node) {

@@ -8,6 +8,7 @@ import 'widgets/hover_region.dart';
 class DraggableItemHandle<IdType> extends StatelessWidget {
   const DraggableItemHandle({
     super.key,
+    required this.visible,
     required this.edge,
     required this.itemId,
     required this.draggedNode,
@@ -21,6 +22,7 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
     this.onHover,
   });
 
+  final bool visible;
   final Edge edge;
   final IdType itemId;
   final LinkNode<int>? draggedNode;
@@ -54,11 +56,13 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
           }
         },
         builder: (context, candidateData, rejectedData) {
-          final dot = DotHandle(
-            enabled: itemEdgeEnabled(edge),
-            edge: edge,
-            onTap: () => onUnlink(edge),
-            onHover: onHover,
+          final dot = Opacity(
+            opacity: visible ? 1 : 0,
+            child: DotHandle(
+              enabled: itemEdgeEnabled(edge),
+              onTap: () => onUnlink(edge),
+              onHover: onHover,
+            ),
           );
 
           return Draggable<LinkNode<IdType>>(
@@ -132,11 +136,8 @@ class ParentItemTarget<IdType> extends StatelessWidget {
             }
           },
           builder: (context, candidateData, rejectedData) {
-            final enabled =
-                draggedEdge == null || edge.axis == draggedEdge?.axis;
             return DotHandle(
-              enabled: enabled,
-              edge: edge,
+              enabled: draggedEdge == null || edge.axis == draggedEdge?.axis,
             );
           },
         ),
@@ -188,14 +189,12 @@ class DotHandle extends StatelessWidget {
   const DotHandle({
     super.key,
     required this.enabled,
-    required this.edge,
     this.size = 8,
     this.onTap,
     this.onHover,
   });
 
   final bool enabled;
-  final Edge edge;
   final double size;
   final VoidCallback? onTap;
   final void Function(bool hovered)? onHover;
@@ -209,13 +208,10 @@ class DotHandle extends StatelessWidget {
         tween: scaleTween(hovered),
         builder: (context, scale, child) => GestureDetector(
           onTap: onTap,
-          child: Container(
-            width: size * scale,
-            height: size * scale,
-            decoration: ShapeDecoration(
-              shape: const CircleBorder(),
-              color: enabled ? Colors.amber[700] : Colors.grey,
-            ),
+          child: Dot(
+            enabled: enabled,
+            size: size,
+            scale: scale,
           ),
         ),
       ),
@@ -224,6 +220,31 @@ class DotHandle extends StatelessWidget {
 
   Tween<double> scaleTween(bool hovered) {
     return Tween(begin: 1, end: enabled && hovered ? 1.5 : 1);
+  }
+}
+
+class Dot extends StatelessWidget {
+  const Dot({
+    super.key,
+    required this.enabled,
+    this.size = 8,
+    this.scale = 1,
+  });
+
+  final bool enabled;
+  final double size;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size * scale,
+      height: size * scale,
+      decoration: ShapeDecoration(
+        shape: const CircleBorder(),
+        color: enabled ? Colors.amber[700] : Colors.grey,
+      ),
+    );
   }
 }
 
