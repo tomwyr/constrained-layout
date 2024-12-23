@@ -22,9 +22,9 @@ class _ComposerState extends State<Composer> {
 
   final layoutKey = GlobalKey();
   final handleKeys = <int?, GlobalKey>{};
+  final itemsTracker = ItemsTracker();
 
   var itemIdCounter = 0;
-  var items = <ConstrainedItem<int>>[];
   var hoverTracker = HoverTracker();
   var itemLinks = <Widget>[];
   var itemHandles = <Widget>[];
@@ -34,6 +34,8 @@ class _ComposerState extends State<Composer> {
   BoxConstraints? lastConstraints;
   ComposerDragData? dragData;
   LinkNode<int>? dragTarget;
+
+  List<ConstrainedItem<int>> get items => itemsTracker.activeItmes;
 
   GlobalKey handleKeyFor(int itemId) {
     return handleKeys.putIfAbsent(itemId, () => GlobalKey());
@@ -93,6 +95,7 @@ class _ComposerState extends State<Composer> {
         clearItemsButton(),
         toggleLinksButton(),
         toggleCodeButton(),
+        ...historyButtons(),
       ],
     );
   }
@@ -431,9 +434,7 @@ class _ComposerState extends State<Composer> {
   Widget clearItemsButton() {
     return ComposerActionButton(
       icon: Icons.delete,
-      onClick: () {
-        setItems([]);
-      },
+      onClick: clearItems,
     );
   }
 
@@ -460,6 +461,23 @@ class _ComposerState extends State<Composer> {
     );
   }
 
+  List<Widget> historyButtons() {
+    return [
+      ComposerActionButton(
+        icon: Icons.undo,
+        onClick: itemsTracker.canUndo
+            ? () => modifyItems(itemsTracker.undo)
+            : null,
+      ),
+      ComposerActionButton(
+        icon: Icons.redo,
+        onClick: itemsTracker.canRedo
+            ? () => modifyItems(itemsTracker.redo)
+            : null,
+      ),
+    ];
+  }
+
   void addNewItem({bool linkToParent = false}) {
     final itemId = itemIdCounter++;
 
@@ -473,27 +491,31 @@ class _ComposerState extends State<Composer> {
       child: Container(),
     );
 
-    setItems([...items, item]);
+    modifyItems(() {
+      itemsTracker.addItem(item);
+    });
   }
 
-  void removeItem(ConstrainedItem item) {
-    setItems([
-      for (var nextItem in items)
-        if (nextItem.id != item.id) nextItem,
-    ]);
+  void removeItem(ConstrainedItem<int> item) {
+    modifyItems(() {
+      itemsTracker.removeItem(item.id);
+    });
   }
 
   void replaceItem(ConstrainedItem<int> item) {
-    setItems([
-      for (var nextItem in items)
-        if (nextItem.id != item.id) nextItem else item,
-    ]);
+    modifyItems(() {
+      itemsTracker.replaceItem(item);
+    });
   }
 
-  void setItems(List<ConstrainedItem<int>> items) {
-    setState(() {
-      this.items = items;
+  void clearItems() {
+    modifyItems(() {
+      itemsTracker.clearItems();
     });
+  }
+
+  void modifyItems(VoidCallback callback) {
+    setState(callback);
     runPostFrame(syncItemOverlays);
   }
 
@@ -581,15 +603,18 @@ class ComposerActionButton extends StatelessWidget {
   });
 
   final IconData icon;
-  final VoidCallback onClick;
+  final VoidCallback? onClick;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: FloatingActionButton.small(
-        onPressed: onClick,
-        child: Icon(icon),
+      child: Opacity(
+        opacity: onClick == null ? 0.5 : 1,
+        child: FloatingActionButton.small(
+          onPressed: onClick,
+          child: Icon(icon),
+        ),
       ),
     );
   }
@@ -625,5 +650,67 @@ class HoverTracker<IdType> {
 
   Set<Edge> _edgesOf(IdType itemId) {
     return _edges.putIfAbsent(itemId, () => {});
+  }
+}
+
+class ItemsTracker {
+  final List<List<ConstrainedItem<int>>> _items = [[]];
+
+  var _activeIndex = 0;
+
+  List<ConstrainedItem<int>> get activeItmes => _items[_activeIndex];
+
+  bool get canUndo => _activeIndex > 0;
+  bool get canRedo => _activeIndex < _items.length - 1;
+
+  void addItem(ConstrainedItem<int> item) {
+    _trimItemsToActive();
+    _items.add([
+      if (_items.isNotEmpty) ..._items.last,
+      item,
+    ]);
+    _activeIndex++;
+  }
+
+  void replaceItem(ConstrainedItem<int> item) {
+    _trimItemsToActive();
+    _items.add([
+      for (var nextItem in _items.last)
+        if (nextItem.id != item.id) nextItem else item,
+    ]);
+    _activeIndex++;
+  }
+
+  void removeItem(int itemId) {
+    _trimItemsToActive();
+    _items.add([
+      for (var item in _items.last)
+        if (item.id != itemId) item,
+    ]);
+    _activeIndex++;
+  }
+
+  void clearItems() {
+    _trimItemsToActive();
+    _items.add([]);
+    _activeIndex++;
+  }
+
+  void undo() {
+    if (_activeIndex > 0) {
+      _activeIndex--;
+    }
+  }
+
+  void redo() {
+    if (_activeIndex < _items.length - 1) {
+      _activeIndex++;
+    }
+  }
+
+  void _trimItemsToActive() {
+    if (_activeIndex > 0 && _activeIndex < _items.length - 1) {
+      _items.removeRange(_activeIndex + 1, _items.length);
+    }
   }
 }
