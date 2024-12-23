@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'utils/extensions.dart';
-import 'widgets/custom_painter_widget.dart';
+import 'widgets/custom_paint_widget.dart';
 
 class LinkPath extends CustomPaintWidget {
   const LinkPath({
