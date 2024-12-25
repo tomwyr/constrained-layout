@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'draggable_item.dart';
 import 'link_path.dart';
 import 'utils/extensions.dart';
+import 'utils/fullscreen/fullscreen.dart';
 import 'utils/functions.dart';
 import 'utils/widget_code.dart';
 import 'widgets/animation_builder.dart';
@@ -95,6 +96,7 @@ class _ComposerState extends State<Composer> {
         clearItemsButton(),
         toggleLinksButton(),
         toggleCodeButton(),
+        if (isFullScreenSupported) fullScreenButton(),
         ...historyButtons(),
       ],
     );
@@ -461,19 +463,28 @@ class _ComposerState extends State<Composer> {
     );
   }
 
+  Widget fullScreenButton() {
+    return ComposerActionButton(
+      icon: isFullScreen() ? Icons.fullscreen_exit : Icons.fullscreen,
+      onClick: () {
+        setState(() {
+          setFullScreen(!isFullScreen());
+        });
+      },
+    );
+  }
+
   List<Widget> historyButtons() {
     return [
       ComposerActionButton(
         icon: Icons.undo,
-        onClick: itemsTracker.canUndo
-            ? () => modifyItems(itemsTracker.undo)
-            : null,
+        onClick:
+            itemsTracker.canUndo ? () => modifyItems(itemsTracker.undo) : null,
       ),
       ComposerActionButton(
         icon: Icons.redo,
-        onClick: itemsTracker.canRedo
-            ? () => modifyItems(itemsTracker.redo)
-            : null,
+        onClick:
+            itemsTracker.canRedo ? () => modifyItems(itemsTracker.redo) : null,
       ),
     ];
   }
