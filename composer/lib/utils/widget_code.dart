@@ -6,38 +6,44 @@ import 'extensions.dart';
 extension ConstrainedLayoutWidgetCode<IdType extends Object>
     on ConstrainedLayout<IdType> {
   String get widgetCode {
-    final itemsCode = switch (items) {
-      [] => '[]',
-      _ => '''[
-${items.widgetCode}
-  ]''',
-    };
+    final itemsCode = [
+      if (items.isEmpty)
+        '[]'
+      else ...[
+        '[\n',
+        items.widgetCode,
+        '  ]',
+      ],
+    ];
 
-    return '''
-ConstrainedLayout(
-  items: $itemsCode,
-)''';
+    return [
+      'ConstrainedLayout(',
+      '  items: ${itemsCode.join()},',
+      ')',
+    ].join('\n');
   }
 
   TextSpan widgetCodeSpan({List<IdType> highlightedItems = const []}) {
-    final itemsCode = switch (items) {
-      [] => ['[]'.span],
-      _ => [
-          '  items: [\n'.span,
-          for (var span
-              in items.widgetCodeSpans(highlightedItems: highlightedItems)) ...[
-            span,
-            ',\n'.span,
-          ],
-          '  ],'.span
-        ],
-    };
+    final itemSpans = items.widgetCodeSpans(highlightedItems: highlightedItems);
 
-    return TextSpan(children: [
-      'ConstrainedLayout(\n'.span,
-      ...itemsCode,
-      '\n)'.span,
-    ]);
+    final itemsCode = [
+      if (itemSpans.isEmpty)
+        '[],'
+      else ...[
+        '[\n',
+        itemSpans,
+        '  ],',
+      ],
+    ];
+
+    return TextSpan(
+      children: [
+        'ConstrainedLayout(\n',
+        '  items: ',
+        itemsCode,
+        '\n)',
+      ].spans,
+    );
   }
 }
 
@@ -80,8 +86,6 @@ extension on Constraint {
 }
 
 extension on String {
-  TextSpan get span => TextSpan(text: this);
-
   String linePrefixed(String prefix) {
     return split('\n').map((line) => prefix + line).join('\n');
   }
@@ -90,14 +94,30 @@ extension on String {
 extension ConstrainedItemsExtensions<IdType> on List<ConstrainedItem<IdType>> {
   String get widgetCode {
     return [
-      for (var item in this) '${item.widgetCode},',
-    ].join('\n');
+      for (var item in this) '${item.widgetCode},\n',
+    ].join();
   }
 
-  List<InlineSpan> widgetCodeSpans({List<IdType> highlightedItems = const []}) {
+  List<Object> widgetCodeSpans({List<IdType> highlightedItems = const []}) {
     return [
-      for (var item in this)
+      for (var item in this) ...[
         item.widgetCodeSpan(highlighted: highlightedItems.contains(item.id)),
+        ',\n',
+      ],
+    ];
+  }
+}
+
+extension on List<Object> {
+  List<InlineSpan> get spans {
+    return [
+      for (var element in this)
+        ...switch (element) {
+          List<Object>() => element.spans,
+          InlineSpan() => [element],
+          String() => [TextSpan(text: element)],
+          _ => throw ArgumentError('Unsupported rich text type: $element'),
+        },
     ];
   }
 }
