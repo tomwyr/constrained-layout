@@ -1,11 +1,13 @@
 import 'constraint.dart';
 import 'widget.dart';
 
-class ConstrainedLayoutOrder {
-  const ConstrainedLayoutOrder();
+class LayoutOrder {
+  const LayoutOrder();
 
-  List<ConstrainedItem> ofItems(List<ConstrainedItem> items) {
-    final itemsInLayoutOrder = <ConstrainedItem>[];
+  List<ConstrainedItem<IdType>> ofItems<IdType>(
+    List<ConstrainedItem<IdType>> items,
+  ) {
+    final itemsInLayoutOrder = <ConstrainedItem<IdType>>[];
     final itemsById = {
       for (var item in items) item.id: item,
     };

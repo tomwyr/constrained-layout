@@ -8,13 +8,13 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
   ConstrainedLayoutDelegate({
     super.relayout,
     required this.items,
-    this.layoutOrder = const ConstrainedLayoutOrder(),
+    this.layoutOrder = const LayoutOrder(),
   }) {
     validateItems();
   }
 
   final List<ConstrainedItem> items;
-  final ConstrainedLayoutOrder layoutOrder;
+  final LayoutOrder layoutOrder;
 
   @override
   void performLayout(Size size) {
