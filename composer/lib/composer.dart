@@ -1,4 +1,5 @@
 import 'package:constrained_layout/constrained_layout.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -26,7 +27,7 @@ class _ComposerState extends State<Composer> {
   final itemsTracker = ItemsTracker();
 
   var itemIdCounter = 0;
-  var hoverTracker = HoverTracker();
+  var hoverTracker = HoverTracker<int>();
   var itemLinks = <Widget>[];
   var itemHandles = <Widget>[];
   var showAllLinks = true;
@@ -184,26 +185,32 @@ class _ComposerState extends State<Composer> {
   }
 
   Widget layoutCode() {
-    final widgetCode = ConstrainedLayout(items: items).widgetCode;
+    return ValueListenableBuilder(
+      valueListenable: hoverTracker.hoveredItems,
+      builder: (context, hoveredItems, child) {
+        final widgetCode = ConstrainedLayout(items: items)
+            .widgetCodeSpan(highlightedItems: hoveredItems);
 
-    return HoverRegion(
-      builder: (hovered) => Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: SelectableText(widgetCode),
-          ),
-          if (hovered)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(2),
-                child: copyCodeButton(widgetCode),
+        return HoverRegion(
+          builder: (hovered) => Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: SelectableText.rich(widgetCode),
               ),
-            ),
-        ],
-      ),
+              if (hovered)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: copyCodeButton(widgetCode.toPlainText()),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -647,8 +654,14 @@ class HoverTracker<IdType> {
   final Map<IdType, Set<Edge>> _edges = {};
   final Set<IdType> _items = {};
 
+  final _hoveredItems = ValueNotifier(<IdType>[]);
+  ValueListenable<List<IdType>> get hoveredItems => _hoveredItems;
+
   void setItemHovered(IdType itemId, bool hovered) {
-    hovered ? _items.add(itemId) : _items.remove(itemId);
+    final itemsChanged = hovered ? _items.add(itemId) : _items.remove(itemId);
+    if (itemsChanged) {
+      _hoveredItems.value = _items.toList();
+    }
   }
 
   void setEdgeHovered(IdType itemId, Edge edge, bool hovered) {
