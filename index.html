@@ -16,7 +16,7 @@
     <!-- Div for embedding the Flutter app -->
     <section id="flutter-component">
         <h2>Playground</h2>
-        <div id="flutter-container" style="width: 100%; height: 500px;"></div>
+        <div id="flutter-container" class="non-full-screen"></div>
     </section>
 
     <footer>
@@ -40,6 +40,44 @@
             });
         });
     </script>
+
+    <script>
+        globalThis.fullScreenEnabled = false;
+        globalThis.isFullScreen = function () {
+            return globalThis.fullScreenEnabled;
+        }
+        globalThis.setFullScreen = function (enabled) {
+            globalThis.fullScreenEnabled = enabled;
+            const container = document.querySelector("#flutter-container");
+            // Apply styles for non full-screen and full-screen modes
+            if (enabled) {
+                container.classList.add('full-screen');
+                container.classList.remove('non-full-screen');
+            } else {
+                container.classList.add('non-full-screen');
+                container.classList.remove('full-screen');
+            }
+        }
+
+    </script>
+
+    <style>
+        #flutter-container.non-full-screen {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            z-index: 1;
+        }
+
+        #flutter-container.full-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+        }
+    </style>
 </body>
 
 </html>
