@@ -27,10 +27,10 @@ class LayoutOrder {
             case null || LinkToParent():
               return true;
 
-            case LinkTo(:var id, :var edge):
+            case LinkTo(:var id):
               final targetUnresolvedEdges =
                   unresolvedEdges[itemsById[id]] ?? {};
-              return !targetUnresolvedEdges.contains(edge);
+              return targetUnresolvedEdges.isEmpty;
           }
         });
 

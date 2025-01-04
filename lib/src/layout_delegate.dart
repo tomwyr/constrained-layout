@@ -23,8 +23,8 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
     final sizesById = <Object, Size>{};
     final offsetsById = <Object, Offset>{};
     layoutById(Object id) => (
-          size: sizesById[id] ?? (throw UnexpectedLayoutError()),
-          offset: offsetsById[id] ?? (throw UnexpectedPositioningError()),
+          size: sizesById[id] ?? (throw InvalidSizeAccessError(id)),
+          offset: offsetsById[id] ?? (throw InvalidOffsetAccessError(id)),
         );
 
     final itemsInLayoutOrder = layoutOrder.ofItems(items);
@@ -256,16 +256,24 @@ class InvalidLinkAxisError extends Error {
   }
 }
 
-class UnexpectedLayoutError extends Error {
+class InvalidSizeAccessError extends Error {
+  InvalidSizeAccessError(this.itemId);
+
+  final Object itemId;
+
   @override
   String toString() {
-    return 'Item size requested before it was laid out';
+    return 'Attempted to access the size of item "$itemId" before it was laid out';
   }
 }
 
-class UnexpectedPositioningError extends Error {
+class InvalidOffsetAccessError extends Error {
+  InvalidOffsetAccessError(this.itemId);
+
+  final Object itemId;
+
   @override
   String toString() {
-    return 'Item offset requested before it was positioned';
+    return 'Attempted to access the offset of item "$itemId" before it was laid out';
   }
 }

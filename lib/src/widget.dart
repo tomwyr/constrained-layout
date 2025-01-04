@@ -145,4 +145,9 @@ class ConstrainedItem<IdType> {
       child: child,
     );
   }
+
+  @override
+  String toString() {
+    return 'ConstrainedItem(id: $id)';
+  }
 }
