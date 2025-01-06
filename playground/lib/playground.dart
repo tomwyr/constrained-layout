@@ -12,14 +12,14 @@ import 'utils/widget_code.dart';
 import 'widgets/animation_builder.dart';
 import 'widgets/hover_region.dart';
 
-class Composer extends StatefulWidget {
-  const Composer({super.key});
+class Playground extends StatefulWidget {
+  const Playground({super.key});
 
   @override
-  State<Composer> createState() => _ComposerState();
+  State<Playground> createState() => _PlaygroundState();
 }
 
-class _ComposerState extends State<Composer> {
+class _PlaygroundState extends State<Playground> {
   static const _previewItemId = -1;
 
   final layoutKey = GlobalKey();
@@ -34,7 +34,7 @@ class _ComposerState extends State<Composer> {
   var showCode = true;
 
   BoxConstraints? lastConstraints;
-  ComposerDragData? dragData;
+  ItemDragData? dragData;
   LinkNode<int>? dragTarget;
 
   List<ConstrainedItem<int>> get items => itemsTracker.activeItmes;
@@ -363,7 +363,7 @@ class _ComposerState extends State<Composer> {
         },
         onDragStart: (edge) {
           setState(() {
-            dragData = ComposerDragData(
+            dragData = ItemDragData(
               origin: LinkNode(itemId: item.id, edge: edge),
               delta: Offset.zero,
             );
@@ -372,7 +372,7 @@ class _ComposerState extends State<Composer> {
         },
         onDragUpdate: (edge, delta) {
           setState(() {
-            dragData = ComposerDragData(
+            dragData = ItemDragData(
               origin: LinkNode(itemId: item.id, edge: edge),
               delta: dragData!.delta + delta,
             );
@@ -434,21 +434,21 @@ class _ComposerState extends State<Composer> {
   }
 
   Widget addItemButton() {
-    return ComposerActionButton(
+    return PlaygroundActionButton(
       icon: Icons.add,
       onClick: addNewItem,
     );
   }
 
   Widget clearItemsButton() {
-    return ComposerActionButton(
+    return PlaygroundActionButton(
       icon: Icons.delete,
       onClick: clearItems,
     );
   }
 
   Widget toggleLinksButton() {
-    return ComposerActionButton(
+    return PlaygroundActionButton(
       icon: Icons.link,
       onClick: () {
         setState(() {
@@ -460,7 +460,7 @@ class _ComposerState extends State<Composer> {
   }
 
   Widget toggleCodeButton() {
-    return ComposerActionButton(
+    return PlaygroundActionButton(
       icon: Icons.code,
       onClick: () {
         setState(() {
@@ -471,7 +471,7 @@ class _ComposerState extends State<Composer> {
   }
 
   Widget fullScreenButton() {
-    return ComposerActionButton(
+    return PlaygroundActionButton(
       icon: isFullScreen() ? Icons.fullscreen_exit : Icons.fullscreen,
       onClick: () {
         setState(() {
@@ -483,12 +483,12 @@ class _ComposerState extends State<Composer> {
 
   List<Widget> historyButtons() {
     return [
-      ComposerActionButton(
+      PlaygroundActionButton(
         icon: Icons.undo,
         onClick:
             itemsTracker.canUndo ? () => modifyItems(itemsTracker.undo) : null,
       ),
-      ComposerActionButton(
+      PlaygroundActionButton(
         icon: Icons.redo,
         onClick:
             itemsTracker.canRedo ? () => modifyItems(itemsTracker.redo) : null,
@@ -613,8 +613,8 @@ class _ComposerState extends State<Composer> {
   }
 }
 
-class ComposerActionButton extends StatelessWidget {
-  const ComposerActionButton({
+class PlaygroundActionButton extends StatelessWidget {
+  const PlaygroundActionButton({
     super.key,
     required this.icon,
     required this.onClick,
@@ -638,8 +638,8 @@ class ComposerActionButton extends StatelessWidget {
   }
 }
 
-class ComposerDragData {
-  ComposerDragData({
+class ItemDragData {
+  ItemDragData({
     required this.origin,
     required this.delta,
   });

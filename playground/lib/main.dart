@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'composer.dart';
+import 'playground.dart';
 
 void main() {
   runApp(const App());
@@ -14,7 +14,7 @@ class App extends StatelessWidget {
     return const MaterialApp(
       title: 'Constrained Layout',
       home: Material(
-        child: Composer(),
+        child: Playground(),
       ),
     );
   }

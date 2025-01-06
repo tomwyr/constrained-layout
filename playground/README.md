@@ -1,4 +1,4 @@
-# constrained_layout_composer
+# constrained_layout_playground
 
 A new Flutter project.
 

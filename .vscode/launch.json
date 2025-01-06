@@ -11,10 +11,10 @@
       "cwd": "example"
     },
     {
-      "name": "composer",
+      "name": "playground",
       "request": "launch",
       "type": "dart",
-      "cwd": "composer"
+      "cwd": "playground"
     },
   ]
 }

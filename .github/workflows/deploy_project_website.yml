@@ -26,7 +26,7 @@ jobs:
         run: flutter test
 
       - name: Build Flutter app
-        working-directory: composer
+        working-directory: playground
         run: flutter build web --release
 
       - name: Prepare sources for deployment
@@ -34,8 +34,8 @@ jobs:
         run: |
           # Create a directory to store the Flutter build output
           mkdir flutter
-          # Copy the built Flutter web app from the 'composer' directory
-          cp -r ../composer/build/web/* flutter/
+          # Copy the built Flutter web app from the 'playground' directory
+          cp -r ../playground/build/web/* flutter/
           # Create a symbolic link to ensure assets are correctly referenced
           ln -s flutter/assets assets
 
