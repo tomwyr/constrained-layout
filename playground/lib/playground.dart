@@ -111,14 +111,16 @@ class _PlaygroundState extends State<Playground> {
         return Stack(
           children: [
             ...itemLinks,
-            if (dragData != null && dragTarget != null) ...itemPreviewLinks(),
             if (dragData != null) ...[
               if (dragData!.moved && dragTarget == null) dragLink(),
-              parentHandles(),
+              if (dragTarget != null) ...itemPreviewLinks(),
             ],
             constrainedLayout(),
             ...itemHandles,
-            if (dragData != null && dragTarget != null) ...itemPreviewHandles(),
+            if (dragData != null) ...[
+              if (dragTarget != null) ...itemPreviewHandles(),
+              parentHandles(),
+            ],
           ],
         );
       },
