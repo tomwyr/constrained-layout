@@ -22,6 +22,9 @@ jobs:
         with:
           channel: "stable"
 
+      - name: Run tests
+        run: flutter test
+
       - name: Build Flutter app
         working-directory: composer
         run: flutter build web --release

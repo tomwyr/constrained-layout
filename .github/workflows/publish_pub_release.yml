@@ -15,6 +15,5 @@ jobs:
       - name: Git Checkout
         uses: actions/checkout@v4
       - uses: ./.github/actions/publish_flutter_package
-        # with:
-        #   # Specify the github actions deployment environment
-        #   working-directory: path/to/package/within/repository
+        with:
+          run-tests: true

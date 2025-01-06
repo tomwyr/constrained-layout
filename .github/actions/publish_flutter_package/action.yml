@@ -7,6 +7,10 @@ inputs:
   working-directory:
     description: directory with-in the repository where the package is located (if not in the repository root)
     required: false
+  run-tests:
+    description: whether to run tests before publishing
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -31,6 +35,12 @@ runs:
     - name: Install dependencies
       shell: ${{ inputs.shell }}
       run: flutter pub get
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Run tests
+      shell: ${{ inputs.shell }}
+      if: ${{ inputs.run-tests == 'true' }}
+      run: flutter test
       working-directory: ${{ inputs.working-directory }}
 
     - name: Dry Run
