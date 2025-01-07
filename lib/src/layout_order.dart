@@ -4,7 +4,7 @@ import 'widget.dart';
 class LayoutOrder {
   const LayoutOrder();
 
-  List<ConstrainedItem<IdType>> ofItems<IdType>(
+  List<ConstrainedItem<IdType>> resolve<IdType>(
     List<ConstrainedItem<IdType>> items,
   ) {
     final itemsInLayoutOrder = <ConstrainedItem<IdType>>[];
@@ -47,6 +47,15 @@ class LayoutOrder {
     }
 
     return itemsInLayoutOrder;
+  }
+
+  bool canResolve<IdType>(List<ConstrainedItem<IdType>> items) {
+    try {
+      resolve(items);
+      return true;
+    } on UnresolvedLayoutError {
+      return false;
+    }
   }
 }
 

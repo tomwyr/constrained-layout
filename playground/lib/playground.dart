@@ -25,6 +25,7 @@ class _PlaygroundState extends State<Playground> {
   final layoutKey = GlobalKey();
   final handleKeys = <int?, GlobalKey>{};
   final itemsTracker = ItemsTracker();
+  final layoutOrder = const LayoutOrder();
 
   var itemIdCounter = 0;
   var hoverTracker = HoverTracker<int>();
@@ -157,7 +158,7 @@ class _PlaygroundState extends State<Playground> {
 
   (LinkNode<int> origin, LinkNode<int> target)? linkPreviewData() {
     final (origin, target) = (dragData?.origin, dragTarget);
-    if (origin != null && target != null && origin.canLinkTo(target)) {
+    if (origin != null && target != null && canLink(origin, target)) {
       return (origin, target);
     }
     return null;
@@ -343,6 +344,10 @@ class _PlaygroundState extends State<Playground> {
     final position = positionOfEdge(item.id, edge);
     final visible = dragTarget == null || item.id != dragData?.origin.itemId;
 
+    final origin = dragData?.origin;
+    final target = LinkNode(itemId: item.id, edge: edge);
+    final enabled = canLink(origin, target);
+
     return Positioned(
       key: ValueKey((item.id, edge)),
       left: position.dx,
@@ -350,8 +355,8 @@ class _PlaygroundState extends State<Playground> {
       child: DraggableItemHandle(
         edge: edge,
         itemId: item.id,
-        draggedNode: dragData?.origin,
         visible: visible,
+        enabled: enabled,
         onLinkCandidate: (edge) {
           setDragTarget(LinkNode(itemId: item.id, edge: edge));
         },
@@ -396,6 +401,21 @@ class _PlaygroundState extends State<Playground> {
         },
       ),
     );
+  }
+
+  bool canLink(LinkNode<int>? origin, LinkNode<int> target) {
+    if (origin == null) {
+      return true;
+    } else if (origin.itemId == target.itemId) {
+      return origin.edge == target.edge;
+    } else if (origin.edge.axis != target.edge.axis) {
+      return false;
+    }
+
+    return layoutOrder.canResolve([
+      for (var item in items)
+        item.id == origin.itemId ? linkItem(origin, target) : item
+    ]);
   }
 
   Offset positionOfEdge(int? itemId, Edge edge) {
@@ -541,7 +561,7 @@ class _PlaygroundState extends State<Playground> {
 
   void setDragTarget(LinkNode<int>? target) {
     final origin = dragData?.origin;
-    if (target != null && origin != null && !origin.canLinkTo(target)) {
+    if (target != null && origin != null && !canLink(origin, target)) {
       return;
     }
 
@@ -604,7 +624,7 @@ class _PlaygroundState extends State<Playground> {
   }
 
   void linkItemAndReplace(LinkNode<int> origin, LinkNode<int> target) {
-    if (!origin.canLinkTo(target)) {
+    if (!canLink(origin, target)) {
       return;
     }
     replaceItem(linkItem(origin, target));

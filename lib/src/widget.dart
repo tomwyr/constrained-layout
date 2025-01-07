@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'constraint.dart';
 import 'layout_delegate.dart';
+import 'layout_order.dart';
 
 /// A layout widget that arranges its children based on constraints defined
 /// for each child within [ConstrainedItem]. This widget utilizes a custom
@@ -46,7 +47,10 @@ class ConstrainedLayout<IdType extends Object> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomMultiChildLayout(
-      delegate: ConstrainedLayoutDelegate(items: items),
+      delegate: ConstrainedLayoutDelegate(
+        items: items,
+        layoutOrder: const LayoutOrder(),
+      ),
       children: [
         for (var item in items) LayoutId(id: item.id, child: item.child),
       ],

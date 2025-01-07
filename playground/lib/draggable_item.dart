@@ -9,9 +9,9 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
   const DraggableItemHandle({
     super.key,
     required this.visible,
+    required this.enabled,
     required this.edge,
     required this.itemId,
-    required this.draggedNode,
     required this.onLinkCandidate,
     required this.onLinkCancel,
     required this.onLinkConfirm,
@@ -23,9 +23,9 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
   });
 
   final bool visible;
+  final bool enabled;
   final Edge edge;
   final IdType itemId;
-  final LinkNode<int>? draggedNode;
   final void Function(Edge edge) onLinkCandidate;
   final void Function() onLinkCancel;
   final void Function(Edge edge, LinkNode<IdType> node) onLinkConfirm;
@@ -59,7 +59,7 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
           final dot = Opacity(
             opacity: visible ? 1 : 0,
             child: DotHandle(
-              enabled: itemEdgeEnabled(edge),
+              enabled: enabled,
               onTap: () => onUnlink(edge),
               onHover: onHover,
             ),
@@ -83,17 +83,6 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
         },
       ),
     );
-  }
-
-  bool itemEdgeEnabled(Edge edge) {
-    final origin = draggedNode;
-    if (origin == null) {
-      return true;
-    } else if (origin.itemId == itemId) {
-      return origin.edge == edge;
-    } else {
-      return origin.edge.axis == edge.axis;
-    }
   }
 }
 
@@ -257,8 +246,9 @@ class LinkNode<IdType> {
   final IdType? itemId;
   final Edge edge;
 
-  bool canLinkTo(LinkNode<IdType> other) {
-    return edge.axis == other.edge.axis;
+  @override
+  String toString() {
+    return 'LinkNode(itemId: $itemId, edge: $edge)';
   }
 }
 

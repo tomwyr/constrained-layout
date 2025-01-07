@@ -8,7 +8,7 @@ void main() {
   const layoutOrder = LayoutOrder();
 
   List<int> orderOf(List<ConstrainedItem<int>> items) {
-    return layoutOrder.ofItems(items).map((item) => item.id).toList();
+    return layoutOrder.resolve(items).map((item) => item.id).toList();
   }
 
   test('resolves layout with no constraints', () {

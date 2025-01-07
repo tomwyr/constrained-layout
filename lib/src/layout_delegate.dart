@@ -8,7 +8,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
   ConstrainedLayoutDelegate({
     super.relayout,
     required this.items,
-    this.layoutOrder = const LayoutOrder(),
+    required this.layoutOrder,
   }) {
     validateItems();
   }
@@ -27,7 +27,7 @@ class ConstrainedLayoutDelegate extends MultiChildLayoutDelegate {
           offset: offsetsById[id] ?? (throw InvalidOffsetAccessError(id)),
         );
 
-    final itemsInLayoutOrder = layoutOrder.ofItems(items);
+    final itemsInLayoutOrder = layoutOrder.resolve(items);
 
     for (var item in itemsInLayoutOrder) {
       final itemSize = layoutChild(item.id, BoxConstraints.loose(parentSize));
