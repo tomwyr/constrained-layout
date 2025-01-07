@@ -357,18 +357,18 @@ class _PlaygroundState extends State<Playground> {
         itemId: item.id,
         visible: visible,
         enabled: enabled,
-        onLinkCandidate: (edge) {
+        onLinkCandidate: () {
           setDragTarget(LinkNode(itemId: item.id, edge: edge));
         },
         onLinkCancel: () {
           setDragTarget(null);
         },
-        onLinkConfirm: (edge, node) {
+        onLinkConfirm: (node) {
           final linkTarget = LinkNode(itemId: item.id, edge: edge);
           setDragTarget(null);
           linkItemAndReplace(node, linkTarget);
         },
-        onDragStart: (edge) {
+        onDragStart: () {
           setState(() {
             dragData = ItemDragData(
               origin: LinkNode(itemId: item.id, edge: edge),
@@ -377,7 +377,7 @@ class _PlaygroundState extends State<Playground> {
           });
           syncItemOverlays();
         },
-        onDragUpdate: (edge, delta) {
+        onDragUpdate: (delta) {
           setState(() {
             dragData = ItemDragData(
               origin: LinkNode(itemId: item.id, edge: edge),
@@ -385,13 +385,13 @@ class _PlaygroundState extends State<Playground> {
             );
           });
         },
-        onDragEnd: (edge) {
+        onDragEnd: () {
           setState(() {
             dragData = null;
           });
           syncItemOverlays();
         },
-        onUnlink: (edge) {
+        onUnlink: () {
           final updatedItem = item.constrainedAlong(null, edge);
           replaceItem(updatedItem);
         },

@@ -26,13 +26,13 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
   final bool enabled;
   final Edge edge;
   final IdType itemId;
-  final void Function(Edge edge) onLinkCandidate;
+  final void Function() onLinkCandidate;
   final void Function() onLinkCancel;
-  final void Function(Edge edge, LinkNode<IdType> node) onLinkConfirm;
-  final void Function(Edge edge) onDragStart;
-  final void Function(Edge edge, Offset delta) onDragUpdate;
-  final void Function(Edge edge) onDragEnd;
-  final void Function(Edge edge) onUnlink;
+  final void Function(LinkNode<IdType> node) onLinkConfirm;
+  final void Function() onDragStart;
+  final void Function(Offset delta) onDragUpdate;
+  final void Function() onDragEnd;
+  final void Function() onUnlink;
   final void Function(bool hovered)? onHover;
 
   @override
@@ -42,7 +42,7 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
       child: DragTarget<LinkNode<IdType>>(
         onMove: (details) {
           if (details.data.itemId != itemId) {
-            onLinkCandidate(edge);
+            onLinkCandidate();
           }
         },
         onLeave: (data) {
@@ -52,7 +52,7 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
         },
         onAcceptWithDetails: (details) {
           if (details.data.itemId != itemId) {
-            onLinkConfirm(edge, details.data);
+            onLinkConfirm(details.data);
           }
         },
         builder: (context, candidateData, rejectedData) {
@@ -60,21 +60,19 @@ class DraggableItemHandle<IdType> extends StatelessWidget {
             opacity: visible ? 1 : 0,
             child: DotHandle(
               enabled: enabled,
-              onTap: () => onUnlink(edge),
+              onTap: onUnlink,
               onHover: onHover,
             ),
           );
 
           return Draggable<LinkNode<IdType>>(
             data: LinkNode(itemId: itemId, edge: edge),
-            onDragStarted: () {
-              onDragStart(edge);
-            },
+            onDragStarted: onDragStart,
             onDragUpdate: (details) {
-              onDragUpdate(edge, details.delta);
+              onDragUpdate(details.delta);
             },
             onDragEnd: (details) {
-              onDragEnd(edge);
+              onDragEnd();
             },
             feedback: const SizedBox.shrink(),
             childWhenDragging: dot,
