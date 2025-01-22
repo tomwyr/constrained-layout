@@ -4,23 +4,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="flutter/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@200;400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="icons/favicon.png">
+    <link rel="stylesheet" href="index.css">
     <title>Constrained Layout</title>
 </head>
 
 <body>
-    <h1>Constrained Layout</h1>
+    <div id="top-bar">
+        <a id="app-header" href="https://pub.dev/packages/constrained_layout" target="_blank">
+            <img id="app-icon" src="icons/favicon.png" alt="App icon">
+            <h1 id="app-title">Constrained Layout</h1>
+        </a>
+        <a id="repo-button" href="https://github.com/tomwyr/constrained-layout" target="_blank">
+            <img src="icons/github.png" alt="GitHub icon">
+            Source Code
+        </a>
+    </div>
 
-    <p>Build layouts by defining relations between the children widgets.</p>
+    <h2 id="app-description">A flexible Flutter layout allowing to position widgets by declaring relations between
+        them</h2>
+
+    <div id="add-package-section">
+        <p>Add to your project with</p>
+        <button id="add-package-button" onclick="navigator.clipboard.writeText('flutter pub add constrained_layout')">
+            flutter pub add constrained_layout</button>
+        <p>or</p>
+    </div>
+
+    <p id="try-playground-prompt">Try it out now in the playground app</p>
 
     <!-- Div for embedding the Flutter app -->
     <section id="flutter-component">
-        <h2>Playground</h2>
         <div id="flutter-container" class="non-full-screen"></div>
     </section>
 
     <footer>
-        <a href="https://github.com/tomwyr/constrained-layout">Visit the repository for more info.</a>
+        For feature requests, bug reports, or other feedback, please head to the repository's
+        <a id="issues-button" href="https://github.com/tomwyr/constrained-layout/issues">Issues</a> tab.
     </footer>
 
     <!-- Load the Flutter web app -->
@@ -41,43 +62,7 @@
         });
     </script>
 
-    <script>
-        globalThis.fullScreenEnabled = false;
-        globalThis.isFullScreen = function () {
-            return globalThis.fullScreenEnabled;
-        }
-        globalThis.setFullScreen = function (enabled) {
-            globalThis.fullScreenEnabled = enabled;
-            const container = document.querySelector("#flutter-container");
-            // Apply styles for non full-screen and full-screen modes
-            if (enabled) {
-                container.classList.add('full-screen');
-                container.classList.remove('non-full-screen');
-            } else {
-                container.classList.add('non-full-screen');
-                container.classList.remove('full-screen');
-            }
-        }
-
-    </script>
-
-    <style>
-        #flutter-container.non-full-screen {
-            position: relative;
-            width: 100%;
-            height: 500px;
-            z-index: 1;
-        }
-
-        #flutter-container.full-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 9999;
-        }
-    </style>
+    <script src="index.js"></script>
 </body>
 
 </html>
