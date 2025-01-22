@@ -11,9 +11,12 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Constrained Layout',
-      home: Material(
+      theme: ThemeData(
+        canvasColor: Colors.white,
+      ),
+      home: const Material(
         child: Playground(),
       ),
     );

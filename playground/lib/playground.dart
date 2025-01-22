@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'draggable_item.dart';
 import 'link_path.dart';
+import 'theme.dart';
 import 'utils/extensions.dart';
 import 'utils/fullscreen/fullscreen.dart';
 import 'utils/functions.dart';
@@ -55,7 +56,6 @@ class _PlaygroundState extends State<Playground> {
     return Column(
       children: [
         layoutActions(),
-        const SizedBox(height: 4),
         Expanded(
           child: layoutBody(),
         ),
@@ -71,8 +71,7 @@ class _PlaygroundState extends State<Playground> {
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: ColoredBox(
-            color: Colors.grey[200]!,
+          child: LayoutSectionPane(
             child: layoutBuilder(),
           ),
         ),
@@ -80,8 +79,7 @@ class _PlaygroundState extends State<Playground> {
           const SizedBox(width: 12),
           Expanded(
             flex: 1,
-            child: ColoredBox(
-              color: Colors.grey[200]!,
+            child: LayoutSectionPane(
               child: layoutCode(),
             ),
           ),
@@ -92,15 +90,18 @@ class _PlaygroundState extends State<Playground> {
   }
 
   Widget layoutActions() {
-    return Row(
-      children: [
-        addItemButton(),
-        clearItemsButton(),
-        toggleLinksButton(),
-        toggleCodeButton(),
-        if (isFullScreenSupported) fullScreenButton(),
-        ...historyButtons(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: Row(
+        children: [
+          addItemButton(),
+          clearItemsButton(),
+          toggleLinksButton(),
+          toggleCodeButton(),
+          if (isFullScreenSupported) fullScreenButton(),
+          ...historyButtons(),
+        ],
+      ),
     );
   }
 
@@ -223,7 +224,7 @@ class _PlaygroundState extends State<Playground> {
       preferBelow: false,
       child: HoverRegion(
         builder: (hovered) => IconButton(
-          icon: const Icon(Icons.copy),
+          icon: const Icon(Icons.copy, size: 16),
           color: !hovered ? Colors.grey : null,
           onPressed: () {
             Clipboard.setData(ClipboardData(text: widgetCode));
@@ -457,6 +458,7 @@ class _PlaygroundState extends State<Playground> {
 
   Widget addItemButton() {
     return PlaygroundActionButton(
+      hint: 'Add new item',
       icon: Icons.add,
       onClick: addNewItem,
     );
@@ -464,6 +466,7 @@ class _PlaygroundState extends State<Playground> {
 
   Widget clearItemsButton() {
     return PlaygroundActionButton(
+      hint: 'Delete items',
       icon: Icons.delete,
       onClick: clearItems,
     );
@@ -471,6 +474,7 @@ class _PlaygroundState extends State<Playground> {
 
   Widget toggleLinksButton() {
     return PlaygroundActionButton(
+      hint: 'Toggle links visibility',
       icon: Icons.link,
       onClick: () {
         setState(() {
@@ -483,6 +487,7 @@ class _PlaygroundState extends State<Playground> {
 
   Widget toggleCodeButton() {
     return PlaygroundActionButton(
+      hint: 'Toggle code tab',
       icon: Icons.code,
       onClick: () {
         setState(() {
@@ -494,6 +499,7 @@ class _PlaygroundState extends State<Playground> {
 
   Widget fullScreenButton() {
     return PlaygroundActionButton(
+      hint: 'Toggle full screen',
       icon: isFullScreen() ? Icons.fullscreen_exit : Icons.fullscreen,
       onClick: () {
         setState(() {
@@ -506,11 +512,13 @@ class _PlaygroundState extends State<Playground> {
   List<Widget> historyButtons() {
     return [
       PlaygroundActionButton(
+        hint: 'Undo',
         icon: Icons.undo,
         onClick:
             itemsTracker.canUndo ? () => modifyItems(itemsTracker.undo) : null,
       ),
       PlaygroundActionButton(
+        hint: 'Redo',
         icon: Icons.redo,
         onClick:
             itemsTracker.canRedo ? () => modifyItems(itemsTracker.redo) : null,
@@ -638,24 +646,58 @@ class _PlaygroundState extends State<Playground> {
 class PlaygroundActionButton extends StatelessWidget {
   const PlaygroundActionButton({
     super.key,
+    required this.hint,
     required this.icon,
     required this.onClick,
   });
 
+  final String hint;
   final IconData icon;
   final VoidCallback? onClick;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(4),
       child: Opacity(
         opacity: onClick == null ? 0.5 : 1,
-        child: FloatingActionButton.small(
-          onPressed: onClick,
-          child: Icon(icon),
+        child: DecoratedBox(
+          decoration: const ShapeDecoration(
+            color: ghostwhite,
+            shape: CircleBorder(
+              side: BorderSide(color: Colors.grey, width: 0.5),
+            ),
+          ),
+          child: Tooltip(
+            message: hint,
+            child: IconButton(
+              iconSize: 16,
+              icon: Icon(icon),
+              onPressed: onClick,
+            ),
+          ),
         ),
       ),
+    );
+  }
+}
+
+class LayoutSectionPane extends StatelessWidget {
+  const LayoutSectionPane({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const ShapeDecoration(
+        color: ghostwhite,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+          side: BorderSide(width: 0.5, color: Colors.grey),
+        ),
+      ),
+      child: child,
     );
   }
 }

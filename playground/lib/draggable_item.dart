@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:constrained_layout/constrained_layout.dart';
 import 'package:flutter/material.dart';
 
+import 'theme.dart';
 import 'widgets/hover_region.dart';
 
 class DraggableItemHandle<IdType> extends StatelessWidget {
@@ -229,7 +230,7 @@ class Dot extends StatelessWidget {
       height: size * scale,
       decoration: ShapeDecoration(
         shape: const CircleBorder(),
-        color: enabled ? Colors.amber[700] : Colors.grey,
+        color: enabled ? ghostwhiteAccent : Colors.grey,
       ),
     );
   }
@@ -250,9 +251,12 @@ class LinkNode<IdType> {
   }
 }
 
+final _random = Random();
 final _colorsById = <dynamic, Color>{};
 Color _colorForId(dynamic id) => _colorsById.putIfAbsent(id, _randomizeColor);
 Color _randomizeColor() {
-  final zeroToOne = Random().nextDouble();
-  return Color(0xff000000 + 0xffffff * zeroToOne ~/ 2);
+  final hue = _random.nextDouble() * 360;
+  final saturation = 0.5 + _random.nextDouble() * 0.5; // Range: 0.5 to 1.0
+  final brightness = 0.7 + _random.nextDouble() * 0.3; // Range: 0.7 to 1.0
+  return HSVColor.fromAHSV(1.0, hue, saturation, brightness).toColor();
 }
