@@ -2,6 +2,8 @@
 
 A flexible Flutter layout allowing to position widgets by declaring relations between them.
 
+Try out the package in an [interactive playground app](https://tomwyr.github.io/constrained-layout/).
+
 ## Usage
 
 Add `ConstrainedLayout` to the widget tree:
