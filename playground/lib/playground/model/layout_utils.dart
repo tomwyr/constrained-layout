@@ -22,7 +22,7 @@ class LayoutUtils {
     final context = getItemKey(itemId).currentContext;
     try {
       final box = context?.findRenderObject();
-      return box is RenderBox && box.hasSize;
+      return box is RenderBox && box.hasSize && box.attached;
     } catch (_) {
       return false;
     }
