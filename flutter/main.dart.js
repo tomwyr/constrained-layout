@@ -33673,7 +33673,7 @@ lt(a,b){return A.apI(a!=null?this.qh(a):this.b,b).P(0,A.b1(A.agm(this.b).ar(null
 Mj(a){var s,r,q=this.qh(a),p=$.V.a0$.x.j(0,q)
 try{q=p
 s=q==null?null:q.gT()
-q=s instanceof A.y&&s.id!=null
+q=s instanceof A.y&&s.id!=null&&s.y!=null
 return q}catch(r){return!1}}}
 A.Vj.prototype={
 $0(){return new A.bv(null,t.F)},
