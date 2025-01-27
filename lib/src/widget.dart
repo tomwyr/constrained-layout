@@ -80,6 +80,16 @@ class ConstrainedItem<IdType> {
     required this.child,
   });
 
+  /// Creates a [ConstrainedItem] where all edges share the same [constraint].
+  ConstrainedItem.all({
+    required this.id,
+    required Constraint? constraint,
+    required this.child,
+  })  : top = constraint,
+        bottom = constraint,
+        left = constraint,
+        right = constraint;
+
   /// Unique identifier for the item, used to define positional constraints
   /// relative to other items.
   final IdType id;
@@ -152,6 +162,6 @@ class ConstrainedItem<IdType> {
 
   @override
   String toString() {
-    return 'ConstrainedItem(id: $id)';
+    return 'ConstrainedItem(id: $id, top: $top, bottom: $bottom, left: $left, right: $right)';
   }
 }
