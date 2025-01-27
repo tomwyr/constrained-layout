@@ -14,7 +14,7 @@ class PlaygroundCodeSection extends StatelessWidget {
     return ListenableBuilder(
       listenable: hoverTracker,
       builder: (context, child) {
-        final widgetCode = ConstrainedLayout(items: itemsModel.items)
+        final widgetCode = ConstrainedLayout(items: itemsHistory.items)
             .widgetCodeSpan(highlightedItems: hoverTracker.hoveredItems);
 
         return HoverRegion(

@@ -37,7 +37,7 @@ class ItemLink extends StatelessWidget {
     };
 
     final active = overrideActive ??
-        dragModel.dragData == null && hoverTracker.isHovered(itemId);
+        dragState.dragData == null && hoverTracker.isHovered(itemId);
 
     return AnimationBuilder(
       active: active,
@@ -61,22 +61,22 @@ class DragLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: dragModel,
+      listenable: dragState,
       builder: (context, child) {
-        final LinkNode(:itemId, :edge) = dragModel.dragData!.origin;
+        final LinkNode(:itemId, :edge) = dragState.dragData!.origin;
         final fromOffset = layoutUtils.positionOfEdge(itemId, edge);
-        final toOffset = switch (dragModel.dragTarget) {
+        final toOffset = switch (dragState.dragTarget) {
           LinkNode(:var itemId, :var edge) =>
             layoutUtils.positionOfEdge(itemId, edge),
-          null => fromOffset + dragModel.dragData!.delta,
+          null => fromOffset + dragState.dragData!.delta,
         };
-        final toParent = switch (dragModel.dragTarget) {
+        final toParent = switch (dragState.dragTarget) {
           LinkNode(itemId: null) => true,
           _ => false,
         };
 
         return AnimationBuilder(
-          active: dragModel.dragTarget != null,
+          active: dragState.dragTarget != null,
           duration: const Duration(seconds: 1),
           listenableBuilder: (listenable) => LinkPath(
             animation: listenable,
@@ -84,7 +84,7 @@ class DragLink extends StatelessWidget {
             fromOffset: fromOffset,
             toOffset: toOffset,
             fromEdge: edge,
-            toEdge: dragModel.dragTarget?.edge,
+            toEdge: dragState.dragTarget?.edge,
             toParent: toParent,
           ),
         );

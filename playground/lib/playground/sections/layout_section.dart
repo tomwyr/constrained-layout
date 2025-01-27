@@ -19,10 +19,10 @@ class PlaygroundLayoutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dragData = dragModel.dragData;
-    final dragTarget = dragModel.dragTarget;
+    final dragData = dragState.dragData;
+    final dragTarget = dragState.dragTarget;
     final previewItem = dragData != null && dragTarget != null
-        ? itemsModel.linkItem(dragData.origin, dragTarget)
+        ? itemsActions.linkPreviewItem(dragData.origin, dragTarget)
         : null;
 
     return LayoutBuilder(
@@ -36,7 +36,7 @@ class PlaygroundLayoutSection extends StatelessWidget {
           const PlaygroundItemsLayout(),
           ..._itemHandles(),
           if (dragData != null) ...[
-            if (previewItem != null) ..._previewHandles(),
+            if (previewItem != null) ..._previewHandles(previewItem),
             ..._parentHandles(),
           ],
         ],
@@ -74,7 +74,7 @@ class PlaygroundLayoutSection extends StatelessWidget {
   }
 
   List<Widget> _previewLinks(ConstrainedItem<int> previewItem) {
-    final itemId = itemsModel.previewItemId;
+    final itemId = previewItem.id;
 
     return [
       for (var (edge, constraint) in previewItem.constraints.records)
@@ -86,7 +86,7 @@ class PlaygroundLayoutSection extends StatelessWidget {
               itemId: itemId,
               edge: edge,
               constraint: constraint,
-              overrideActive: edge == dragModel.dragData!.origin.edge,
+              overrideActive: edge == dragState.dragData!.origin.edge,
             ),
           ),
     ];
@@ -109,8 +109,8 @@ class PlaygroundLayoutSection extends StatelessWidget {
     ];
   }
 
-  List<Widget> _previewHandles() {
-    final itemId = itemsModel.previewItemId;
+  List<Widget> _previewHandles(ConstrainedItem<int> previewItem) {
+    final itemId = previewItem.id;
 
     return [
       for (var edge in Edge.values)
@@ -142,17 +142,16 @@ class PlaygroundItemsLayout extends StatelessWidget {
       builder: (context, child) => ConstrainedLayout(
         key: layoutUtils.layoutKey,
         items: [
-          ...itemsModel.items.map(_regularItem),
-          if (itemResolver.getLinkPreviewData() case (var origin, var target))
-            _previewItem(origin, target),
+          ...itemsHistory.items.map(_regularItem),
+          if (_previewItem() case var previewItem?) previewItem,
         ],
       ),
     );
   }
 
   ConstrainedItem<int> _regularItem(ConstrainedItem<int> item) {
-    final previewed = dragModel.dragData?.origin.itemId == item.id &&
-        dragModel.dragTarget != null;
+    final previewed = dragState.dragData?.origin.itemId == item.id &&
+        dragState.dragTarget != null;
     final child = ItemSquare(
       key: layoutUtils.getItemKey(item.id),
       onHover: (hovered) {
@@ -165,15 +164,16 @@ class PlaygroundItemsLayout extends StatelessWidget {
     return item.swapChild(child);
   }
 
-  ConstrainedItem<int> _previewItem(
-    LinkNode<int> origin,
-    LinkNode<int> target,
-  ) {
-    final originItem = itemsModel.findItem(origin);
-    final previewItem = itemResolver.getLinkPreviewItem(origin, target);
+  ConstrainedItem<int>? _previewItem() {
+    final originId = dragState.dragData?.origin.itemId;
+    final previewItem = itemResolver.getLinkPreviewItem();
+    if (originId == null || previewItem == null) {
+      return null;
+    }
+
     final child = ItemSquare(
       key: layoutUtils.getItemKey(previewItem.id),
-      colorId: originItem.id,
+      colorId: originId,
     );
     return previewItem.swapChild(child);
   }

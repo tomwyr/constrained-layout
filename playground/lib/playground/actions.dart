@@ -1,4 +1,3 @@
-import 'package:constrained_layout/constrained_layout.dart';
 import 'package:flutter/material.dart';
 
 import '../app.dart';
@@ -8,12 +7,10 @@ import 'model.dart';
 class PlaygroundActions extends StatelessWidget {
   const PlaygroundActions({
     super.key,
-    required this.createItem,
     required this.onToggleLinks,
     required this.onToggleCode,
   });
 
-  final ValueGetter<ConstrainedItem<int>> createItem;
   final VoidCallback onToggleLinks;
   final VoidCallback onToggleCode;
 
@@ -36,7 +33,7 @@ class PlaygroundActions extends StatelessWidget {
     return PlaygroundActionButton(
       hint: 'Add new item',
       icon: Icons.add,
-      onClick: () => itemsHistory.addItem(createItem()),
+      onClick: itemsActions.addEmptyItem,
     );
   }
 

@@ -17,12 +17,12 @@ class ItemHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final origin = dragModel.dragData?.origin;
+    final origin = dragState.dragData?.origin;
     final position = layoutUtils.positionOfEdge(item.id, edge);
-    final visible = dragModel.dragTarget == null || item.id != origin?.itemId;
+    final visible = dragState.dragTarget == null || item.id != origin?.itemId;
 
     final target = LinkNode(itemId: item.id, edge: edge);
-    final enabled = itemsModel.canLink(origin, target);
+    final enabled = itemsActions.canLink(origin, target);
 
     return Positioned(
       key: ValueKey((item.id, edge)),
@@ -33,19 +33,19 @@ class ItemHandle extends StatelessWidget {
         child: DragTarget<LinkNode<int>>(
           onMove: (details) {
             if (details.data.itemId != item.id) {
-              dragModel.setDragTarget(LinkNode(itemId: item.id, edge: edge));
+              dragState.setDragTarget(LinkNode(itemId: item.id, edge: edge));
             }
           },
           onLeave: (data) {
             if (data?.itemId != item.id) {
-              dragModel.setDragTarget(null);
+              dragState.setDragTarget(null);
             }
           },
           onAcceptWithDetails: (details) {
             if (details.data.itemId != item.id) {
               final linkTarget = LinkNode(itemId: item.id, edge: edge);
-              dragModel.setDragTarget(null);
-              itemsModel.linkItemAndReplace(details.data, linkTarget);
+              dragState.setDragTarget(null);
+              itemsActions.linkItemAndReplace(details.data, linkTarget);
             }
           },
           builder: (context, candidateData, rejectedData) {
@@ -66,13 +66,13 @@ class ItemHandle extends StatelessWidget {
             return Draggable<LinkNode<int>>(
               data: LinkNode(itemId: item.id, edge: edge),
               onDragStarted: () {
-                dragModel.startDrag(item, edge);
+                dragState.startDrag(item, edge);
               },
               onDragUpdate: (details) {
-                dragModel.updateDrag(item, edge, details.delta);
+                dragState.updateDrag(item, edge, details.delta);
               },
               onDragEnd: (details) {
-                dragModel.endDrag();
+                dragState.endDrag();
               },
               feedback: const SizedBox.shrink(),
               childWhenDragging: dot,
@@ -96,7 +96,7 @@ class ParentHandle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final linkTarget = LinkNode<int>(itemId: null, edge: edge);
-    final draggedEdge = dragModel.dragData?.origin.edge;
+    final draggedEdge = dragState.dragData?.origin.edge;
 
     return Align(
       alignment: edge.toAlignment(),
@@ -105,18 +105,18 @@ class ParentHandle extends StatelessWidget {
         child: DragTarget<LinkNode<int>>(
           onMove: (details) {
             if (details.data.itemId != null) {
-              dragModel.setDragTarget(linkTarget);
+              dragState.setDragTarget(linkTarget);
             }
           },
           onLeave: (data) {
             if (data?.itemId != null) {
-              dragModel.setDragTarget(null);
+              dragState.setDragTarget(null);
             }
           },
           onAcceptWithDetails: (details) {
             if (details.data.itemId != null) {
-              dragModel.setDragTarget(null);
-              itemsModel.linkItemAndReplace(details.data, linkTarget);
+              dragState.setDragTarget(null);
+              itemsActions.linkItemAndReplace(details.data, linkTarget);
             }
           },
           builder: (context, candidateData, rejectedData) {
@@ -151,7 +151,7 @@ class PreviewHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final origin = dragModel.dragData!.origin;
+    final origin = dragState.dragData!.origin;
     final position = layoutUtils.positionOfEdge(itemId, edge);
 
     return Positioned(

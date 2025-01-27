@@ -2,19 +2,14 @@ import 'package:constrained_layout/constrained_layout.dart';
 import 'package:flutter/material.dart';
 
 import '../../types.dart';
-import 'hover_tracker.dart';
-import 'items_model.dart';
+import 'items_actions.dart';
 
-const previewIxtemId = -1;
-
-class DragModel extends ChangeNotifier {
-  DragModel({
-    required this.itemsModel,
-    required this.hoverTracker,
+class DragState extends ChangeNotifier {
+  DragState({
+    required this.itemsActions,
   });
 
-  final ItemsModel itemsModel;
-  final HoverTracker hoverTracker;
+  final ItemsActions itemsActions;
 
   ItemDragData? _dragData;
   ItemDragData? get dragData => _dragData;
@@ -26,7 +21,7 @@ class DragModel extends ChangeNotifier {
     final origin = _dragData?.origin;
     if (target != null &&
         origin != null &&
-        !itemsModel.canLink(origin, target)) {
+        !itemsActions.canLink(origin, target)) {
       return;
     }
 

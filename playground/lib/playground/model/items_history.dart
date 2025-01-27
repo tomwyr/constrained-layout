@@ -6,10 +6,10 @@ class ItemsHistory extends ChangeNotifier {
 
   var _activeIndex = 0;
 
-  List<ConstrainedItem<int>> get activeItmes => _items[_activeIndex];
-
   bool get canUndo => _activeIndex > 0;
   bool get canRedo => _activeIndex < _items.length - 1;
+
+  List<ConstrainedItem<int>> get items => _items[_activeIndex];
 
   void addItem(ConstrainedItem<int> item) {
     _trimItemsToActive();

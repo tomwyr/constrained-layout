@@ -1,4 +1,3 @@
-import 'package:constrained_layout/constrained_layout.dart';
 import 'package:flutter/material.dart';
 
 import '../app.dart';
@@ -32,9 +31,9 @@ class _PlaygroundState extends State<Playground> {
   @override
   void initState() {
     super.initState();
-    itemsHistory.addItem(_createNewItem(linkToParent: true));
+    itemsActions.addEmptyItem(linkToParent: true);
     itemsHistory.addListener(() => setState(() {}));
-    dragModel.addListener(() => setState(() {}));
+    dragState.addListener(() => setState(() {}));
     hoverTracker.addListener(() => setState(() {}));
   }
 
@@ -70,7 +69,6 @@ class _PlaygroundState extends State<Playground> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: PlaygroundActions(
-        createItem: _createNewItem,
         onToggleLinks: _toggleShowAllLinks,
         onToggleCode: _toggleShowCode,
       ),
@@ -94,18 +92,6 @@ class _PlaygroundState extends State<Playground> {
       child: PlaygroundSectionPane(
         child: PlaygroundCodeSection(),
       ),
-    );
-  }
-
-  ConstrainedItem<int> _createNewItem({bool linkToParent = false}) {
-    final constraint = linkToParent ? LinkToParent() : null;
-    return ConstrainedItem(
-      id: itemsModel.getNextItemId(),
-      top: constraint,
-      bottom: constraint,
-      left: constraint,
-      right: constraint,
-      child: Container(),
     );
   }
 }
