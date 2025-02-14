@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Adjust project description
+
 ## 0.0.3
 
 - Add `ConstrainedItem.all` constructor
